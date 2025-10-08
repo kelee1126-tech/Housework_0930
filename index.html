@@ -1268,30 +1268,45 @@
         // Google Apps Script API 호출 함수
         async function callGAS(action, data = {}) {
             try {
+                console.log('🔄 GAS API 호출:', action, data);
+                
                 const formData = new FormData();
                 formData.append('action', action);
                 formData.append('data', JSON.stringify(data));
                 
                 const response = await fetch(GAS_WEB_APP_URL, {
                     method: 'POST',
-                    body: formData
+                    body: formData,
+                    mode: 'cors'
                 });
                 
+                console.log('📡 응답 상태:', response.status, response.statusText);
+                
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    const errorText = await response.text();
+                    console.error('❌ HTTP 오류 응답:', errorText);
+                    throw new Error(`서버 오류 (${response.status}): ${response.statusText}`);
+                }
+                
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    const text = await response.text();
+                    console.error('❌ JSON이 아닌 응답:', text.substring(0, 200));
+                    throw new Error('서버가 올바른 형식의 응답을 반환하지 않았습니다.');
                 }
                 
                 const result = await response.json();
+                console.log('✅ GAS API 응답:', result);
                 
-                if (!result.success) {
+                if (!result.success && result.success !== undefined) {
+                    console.error('❌ API 오류:', result.message);
                     throw new Error(result.message || '서버 오류가 발생했습니다.');
                 }
                 
                 return result.data;
             } catch (error) {
-                console.error('GAS API 호출 오류:', error);
-                // 오프라인 모드나 개발 모드에서는 샘플 데이터 사용
-                return getSampleData(action, data);
+                console.error('❌ GAS API 호출 오류:', error);
+                throw error;  // 에러를 다시 던져서 호출자가 처리하도록 함
             }
         }
 
@@ -2481,7 +2496,14 @@
 
                 console.log('가족 이름 확인 응답:', response);
 
-                if (response.exists) {
+                // 에러 체크
+                if (response && response.error) {
+                    resultDiv.innerHTML = '<span style="color: #dc2626;">❌ ' + (response.message || '서버 오류가 발생했습니다.') + '</span>';
+                    existingFamilyInfo.style.display = 'none';
+                    return;
+                }
+
+                if (response && response.exists) {
                     // 기존 가족 찾음
                     foundFamily = response.family;
                     resultDiv.innerHTML = '<span style="color: rgb(82, 135, 250);">✅ 기존 가족을 찾았습니다!</span>';
@@ -2496,7 +2518,7 @@
                     
                     // 닉네임 입력란으로 포커스 이동
                     nicknameInput.focus();
-                } else {
+                } else if (response) {
                     // 사용 가능한 이름
                     foundFamily = null;
                     resultDiv.innerHTML = '<span style="color: rgb(95, 240, 167); font-weight: bold;">✅ "' + familyName + '"로 가족 등록이 가능합니다!</span>';
@@ -2504,10 +2526,13 @@
                     
                     // 닉네임 입력란으로 포커스 이동
                     nicknameInput.focus();
+                } else {
+                    resultDiv.innerHTML = '<span style="color: #dc2626;">❌ 응답 형식이 올바르지 않습니다.</span>';
+                    existingFamilyInfo.style.display = 'none';
                 }
             } catch (error) {
                 console.error('가족 이름 확인 오류:', error);
-                resultDiv.innerHTML = '<span style="color: #dc2626;">❌ 서버 통신 오류가 발생했습니다. 잠시 후 다시 시도해주세요.</span>';
+                resultDiv.innerHTML = '<span style="color: #dc2626;">❌ 오류가 발생했습니다: ' + error.message + '</span>';
                 existingFamilyInfo.style.display = 'none';
             }
         }

@@ -1143,8 +1143,23 @@ function getUserByEmail(email) {
 function checkFamilyName(data) {
     try {
         const familyName = data.familyName;
+        
+        if (!familyName) {
+            return {
+                exists: false,
+                message: '가족 이름을 입력해주세요.'
+            };
+        }
+        
         const sheet = getSheet(SHEET_NAMES.FAMILY);
         const familyData = sheet.getDataRange().getValues();
+        
+        // 헤더만 있는 경우 (데이터가 없는 경우)
+        if (familyData.length <= 1) {
+            return {
+                exists: false
+            };
+        }
         
         // 헤더 제외하고 검색
         for (let i = 1; i < familyData.length; i++) {
@@ -1152,14 +1167,20 @@ function checkFamilyName(data) {
                 // 가족 구성원 수 조회
                 const membersSheet = getSheet(SHEET_NAMES.FAMILY_MEMBERS);
                 const membersData = membersSheet.getDataRange().getValues();
-                const memberCount = membersData.filter(row => row[1] === familyData[i][0]).length - 1; // 헤더 제외
+                
+                let memberCount = 0;
+                for (let j = 1; j < membersData.length; j++) {
+                    if (membersData[j][1] === familyData[i][0]) {  // family_id 매칭
+                        memberCount++;
+                    }
+                }
                 
                 return {
                     exists: true,
                     family: {
                         id: familyData[i][0],
                         name: familyData[i][1],
-                        created_at: familyData[i][2],
+                        created_at: familyData[i][4] || new Date().toISOString(),
                         memberCount: memberCount
                     }
                 };
@@ -1172,7 +1193,11 @@ function checkFamilyName(data) {
         };
     } catch (error) {
         Logger.log('가족 이름 확인 오류: ' + error.toString());
-        throw new Error('가족 이름 확인 중 오류가 발생했습니다: ' + error.toString());
+        return {
+            exists: false,
+            error: true,
+            message: '가족 이름 확인 중 오류가 발생했습니다: ' + error.toString()
+        };
     }
 }
 
