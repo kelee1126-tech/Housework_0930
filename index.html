@@ -1310,13 +1310,18 @@
         }
 
         // 앱 데이터 로드
-        function loadAppData() {
+        async function loadAppData() {
             updateUserInfo();
             updateTodayDate();
             loadTasks();
             loadFamilyMembers();
             loadShellCount();
             loadCategories();
+            
+            // 가족 데이터도 미리 로드 (가족 탭 진입 시 빠르게 표시하기 위함)
+            if (currentUser && currentUser.id) {
+                await loadMyFamilies();
+            }
         }
 
         // 사용자 정보 업데이트
