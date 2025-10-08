@@ -879,7 +879,7 @@
     <!-- 가족 초대 모달 -->
     <!-- 가족 찾기 모달 -->
     <div id="findFamilyModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 600px;">
             <div class="modal-header">
                 <h3 class="modal-title">🔍 가족 찾기</h3>
                 <button class="close-btn" onclick="closeModal('findFamilyModal')">&times;</button>
@@ -891,7 +891,7 @@
                 <div class="form-group">
                     <label class="form-label">가족 이름</label>
                     <div style="display: flex; gap: 0.5rem;">
-                        <input type="text" class="form-input" id="searchFamilyName" placeholder="가족 이름을 입력하세요">
+                        <input type="text" class="form-input" id="searchFamilyName" placeholder="가족 이름을 입력하세요" onkeypress="if(event.key==='Enter'){searchFamily();event.preventDefault();}">
                         <button type="button" class="btn btn-primary" onclick="searchFamily()" style="white-space: nowrap;">찾기</button>
                     </div>
                 </div>
@@ -899,15 +899,38 @@
                 <!-- 검색 결과 -->
                 <div id="searchFamilyResult" style="margin-top: 1rem;"></div>
                 
+                <!-- 비슷한 가족 목록 -->
+                <div id="similarFamiliesSection" style="display: none; margin-top: 1.5rem; border-top: 1px solid #e5e7eb; padding-top: 1.5rem;">
+                    <h4 style="font-size: 1rem; margin-bottom: 1rem; color: #666;">혹시 이 가족입니까?</h4>
+                    <div id="similarFamiliesList"></div>
+                </div>
+                
+                <!-- 새 가족 등록 옵션 -->
+                <div id="createNewFamilySection" style="display: none; margin-top: 1.5rem; border-top: 1px solid #e5e7eb; padding-top: 1.5rem;">
+                    <p style="color: #666; margin-bottom: 1rem;">
+                        찾으시는 가족이 없으신가요?
+                    </p>
+                    <button type="button" class="btn btn-primary" onclick="openCreateFamilyFromSearch()" style="width: 100%;">
+                        ➕ 새 가족 만들기
+                    </button>
+                </div>
+                
                 <!-- 가입 양식 (검색 성공 시 표시) -->
                 <form id="joinFamilyForm" style="display: none; margin-top: 1.5rem; border-top: 1px solid #e5e7eb; padding-top: 1.5rem;">
+                    <input type="hidden" id="selectedFamilyId">
+                    <input type="hidden" id="selectedFamilyName">
+                    
+                    <div style="margin-bottom: 1rem; padding: 1rem; background: #eff6ff; border-radius: 8px;">
+                        <strong id="selectedFamilyDisplay"></strong>
+                    </div>
+                    
                     <div class="form-group">
                         <label class="form-label">가족 내 닉네임</label>
                         <input type="text" class="form-input" id="joinFamilyNickname" placeholder="예: 엄마, 아빠, 형 등" required>
                     </div>
                     <div class="task-controls">
                         <button type="submit" class="btn btn-primary">가족 가입하기</button>
-                        <button type="button" class="btn btn-secondary" onclick="closeModal('findFamilyModal')">취소</button>
+                        <button type="button" class="btn btn-secondary" onclick="cancelJoinFamily()">취소</button>
                     </div>
                 </form>
             </div>
@@ -2186,6 +2209,9 @@
             const familyName = familyNameInput.value.trim();
             const resultDiv = document.getElementById('searchFamilyResult');
             const joinForm = document.getElementById('joinFamilyForm');
+            const similarSection = document.getElementById('similarFamiliesSection');
+            const createNewSection = document.getElementById('createNewFamilySection');
+            const similarList = document.getElementById('similarFamiliesList');
             
             if (!familyName) {
                 resultDiv.innerHTML = '<span style="color: #dc2626;">가족 이름을 입력해주세요.</span>';
@@ -2194,6 +2220,9 @@
             
             try {
                 resultDiv.innerHTML = '<span style="color: #666;">검색 중...</span>';
+                similarSection.style.display = 'none';
+                createNewSection.style.display = 'none';
+                joinForm.style.display = 'none';
                 
                 const response = await callGAS('checkFamilyName', {
                     familyName: familyName
@@ -2203,11 +2232,11 @@
                 
                 if (response && response.error) {
                     resultDiv.innerHTML = '<span style="color: #dc2626;">❌ ' + (response.message || '검색 중 오류가 발생했습니다.') + '</span>';
-                    joinForm.style.display = 'none';
                     return;
                 }
                 
-                if (response && response.exists) {
+                // 정확히 일치하는 가족이 있는 경우
+                if (response && response.exists && response.exactMatch) {
                     foundFamilyToJoin = response.family;
                     resultDiv.innerHTML = `
                         <div style="padding: 1rem; background: #eff6ff; border-radius: 8px; border: 1px solid rgb(82, 135, 250);">
@@ -2218,17 +2247,106 @@
                             </div>
                         </div>
                     `;
-                    joinForm.style.display = 'block';
-                    document.getElementById('joinFamilyNickname').focus();
+                    
+                    // 가입 폼 표시
+                    selectFamilyToJoin(foundFamilyToJoin);
+                    
                 } else {
+                    // 정확히 일치하는 가족이 없는 경우
                     foundFamilyToJoin = null;
                     resultDiv.innerHTML = '<span style="color: #dc2626;">❌ "' + familyName + '" 이름의 가족을 찾을 수 없습니다.</span>';
-                    joinForm.style.display = 'none';
+                    
+                    // 비슷한 가족이 있는지 확인
+                    if (response && response.similarFamilies && response.similarFamilies.length > 0) {
+                        similarList.innerHTML = '';
+                        response.similarFamilies.forEach(family => {
+                            const familyCard = document.createElement('div');
+                            familyCard.style.cssText = `
+                                padding: 1rem;
+                                border: 1px solid #e5e7eb;
+                                border-radius: 8px;
+                                margin-bottom: 0.5rem;
+                                cursor: pointer;
+                                transition: all 0.2s;
+                            `;
+                            familyCard.onmouseover = () => familyCard.style.borderColor = 'rgb(82, 135, 250)';
+                            familyCard.onmouseout = () => familyCard.style.borderColor = '#e5e7eb';
+                            
+                            familyCard.innerHTML = `
+                                <div style="font-weight: bold; margin-bottom: 0.25rem;">${family.name}</div>
+                                <div style="font-size: 0.875rem; color: #666;">
+                                    구성원 ${family.memberCount || 0}명 • 생성일: ${new Date(family.created_at).toLocaleDateString()}
+                                </div>
+                            `;
+                            
+                            familyCard.onclick = () => selectFamilyToJoin(family);
+                            similarList.appendChild(familyCard);
+                        });
+                        similarSection.style.display = 'block';
+                    }
+                    
+                    // 새 가족 만들기 버튼 표시
+                    createNewSection.style.display = 'block';
                 }
             } catch (error) {
                 console.error('가족 검색 오류:', error);
                 resultDiv.innerHTML = '<span style="color: #dc2626;">❌ 검색 중 오류가 발생했습니다: ' + error.message + '</span>';
-                joinForm.style.display = 'none';
+                similarSection.style.display = 'none';
+                createNewSection.style.display = 'none';
+            }
+        }
+
+        // 가족 선택하여 가입 폼 표시
+        function selectFamilyToJoin(family) {
+            foundFamilyToJoin = family;
+            
+            document.getElementById('selectedFamilyId').value = family.id;
+            document.getElementById('selectedFamilyName').value = family.name;
+            document.getElementById('selectedFamilyDisplay').textContent = `"${family.name}" 가족에 가입합니다`;
+            
+            document.getElementById('joinFamilyForm').style.display = 'block';
+            document.getElementById('joinFamilyNickname').value = '';
+            document.getElementById('joinFamilyNickname').focus();
+            
+            // 스크롤을 폼으로 이동
+            document.getElementById('joinFamilyForm').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // 가입 취소
+        function cancelJoinFamily() {
+            document.getElementById('joinFamilyForm').style.display = 'none';
+            foundFamilyToJoin = null;
+        }
+
+        // 검색에서 새 가족 만들기
+        async function openCreateFamilyFromSearch() {
+            // 기존 가족이 있는지 확인
+            if (currentUser && currentUser.familyGroupId) {
+                const confirmCreate = confirm(
+                    '⚠️ 경고\n\n' +
+                    '이미 가족에 소속되어 있습니다.\n' +
+                    '새 가족을 만들면 기존 가족과 연동되지 않을 수 있습니다.\n\n' +
+                    '그래도 새 가족을 만드시겠습니까?'
+                );
+                
+                if (!confirmCreate) {
+                    return;
+                }
+            }
+            
+            // 검색한 가족 이름 가져오기
+            const searchedName = document.getElementById('searchFamilyName').value.trim();
+            
+            // 가족 찾기 모달 닫기
+            closeModal('findFamilyModal');
+            
+            // 가족 등록 모달 열기
+            showFamilyRegistrationModal();
+            
+            // 검색한 이름을 자동으로 입력
+            if (searchedName) {
+                document.getElementById('familyNameInput').value = searchedName;
+                document.getElementById('familyNicknameInput').focus();
             }
         }
 

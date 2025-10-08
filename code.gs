@@ -1157,17 +1157,17 @@ function checkFamilyName(data) {
         // 헤더만 있는 경우 (데이터가 없는 경우)
         if (familyData.length <= 1) {
             return {
-                exists: false
+                exists: false,
+                similarFamilies: []
             };
         }
         
-        // 헤더 제외하고 검색
+        const membersSheet = getSheet(SHEET_NAMES.FAMILY_MEMBERS);
+        const membersData = membersSheet.getDataRange().getValues();
+        
+        // 정확히 일치하는 가족 검색
         for (let i = 1; i < familyData.length; i++) {
             if (familyData[i][1] === familyName) { // family_name 컬럼
-                // 가족 구성원 수 조회
-                const membersSheet = getSheet(SHEET_NAMES.FAMILY_MEMBERS);
-                const membersData = membersSheet.getDataRange().getValues();
-                
                 let memberCount = 0;
                 for (let j = 1; j < membersData.length; j++) {
                     if (membersData[j][1] === familyData[i][0]) {  // family_id 매칭
@@ -1177,6 +1177,7 @@ function checkFamilyName(data) {
                 
                 return {
                     exists: true,
+                    exactMatch: true,
                     family: {
                         id: familyData[i][0],
                         name: familyData[i][1],
@@ -1187,9 +1188,42 @@ function checkFamilyName(data) {
             }
         }
         
+        // 정확히 일치하는 가족이 없으면 비슷한 이름 검색
+        const similarFamilies = [];
+        const searchLower = familyName.toLowerCase();
+        
+        for (let i = 1; i < familyData.length; i++) {
+            const currentName = familyData[i][1];
+            if (!currentName) continue;
+            
+            const currentLower = currentName.toLowerCase();
+            
+            // 부분 일치 또는 유사도 검사
+            if (currentLower.includes(searchLower) || 
+                searchLower.includes(currentLower) ||
+                calculateSimilarity(searchLower, currentLower) > 0.6) {
+                
+                let memberCount = 0;
+                for (let j = 1; j < membersData.length; j++) {
+                    if (membersData[j][1] === familyData[i][0]) {
+                        memberCount++;
+                    }
+                }
+                
+                similarFamilies.push({
+                    id: familyData[i][0],
+                    name: currentName,
+                    created_at: familyData[i][4] || new Date().toISOString(),
+                    memberCount: memberCount
+                });
+            }
+        }
+        
         // 가족이 없으면
         return {
-            exists: false
+            exists: false,
+            exactMatch: false,
+            similarFamilies: similarFamilies
         };
     } catch (error) {
         Logger.log('가족 이름 확인 오류: ' + error.toString());
@@ -1199,6 +1233,47 @@ function checkFamilyName(data) {
             message: '가족 이름 확인 중 오류가 발생했습니다: ' + error.toString()
         };
     }
+}
+
+/**
+ * 두 문자열의 유사도 계산 (Levenshtein distance 기반)
+ */
+function calculateSimilarity(str1, str2) {
+    const longer = str1.length > str2.length ? str1 : str2;
+    const shorter = str1.length > str2.length ? str2 : str1;
+    
+    if (longer.length === 0) {
+        return 1.0;
+    }
+    
+    const editDistance = getEditDistance(longer, shorter);
+    return (longer.length - editDistance) / longer.length;
+}
+
+/**
+ * Edit distance 계산
+ */
+function getEditDistance(str1, str2) {
+    const costs = [];
+    for (let i = 0; i <= str1.length; i++) {
+        let lastValue = i;
+        for (let j = 0; j <= str2.length; j++) {
+            if (i === 0) {
+                costs[j] = j;
+            } else if (j > 0) {
+                let newValue = costs[j - 1];
+                if (str1.charAt(i - 1) !== str2.charAt(j - 1)) {
+                    newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
+                }
+                costs[j - 1] = lastValue;
+                lastValue = newValue;
+            }
+        }
+        if (i > 0) {
+            costs[str2.length] = lastValue;
+        }
+    }
+    return costs[str2.length];
 }
 
 /**
