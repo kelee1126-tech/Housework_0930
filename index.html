@@ -795,19 +795,32 @@
                 <div class="task-management">
                     <h2 class="section-title">👨‍👩‍👧‍👦 가족 관리</h2>
                     
-                    <div class="task-controls">
+                    <!-- 내가 속한 가족 섹션 -->
+                    <div class="family-section" style="margin-bottom: 2rem;">
+                        <h3 style="font-size: 1.2rem; margin-bottom: 1rem; color: #333;">📋 내가 속한 가족</h3>
+                        <div id="myFamiliesList" class="my-families-list">
+                            <div class="loading">가족 정보를 불러오는 중...</div>
+                        </div>
+                    </div>
+
+                    <!-- 가족 관리 버튼 -->
+                    <div class="task-controls" style="display: flex; gap: 1rem; flex-wrap: wrap;">
                         <button class="btn btn-primary" onclick="openInviteModal()">
-                            📱 가족 초대
+                            📱 가족원 초대
+                        </button>
+                        <button class="btn btn-primary" onclick="openFindFamilyModal()">
+                            🔍 가족 찾기
                         </button>
                         <button class="btn btn-secondary" onclick="openAlarmModal()">
                             🔔 알람 설정
                         </button>
                     </div>
 
-                    <div class="family-list" id="familyList">
-                        <div class="loading">
-                            <div class="spinner"></div>
-                            가족 정보를 불러오는 중...
+                    <!-- 현재 선택된 가족의 구성원 목록 -->
+                    <div class="family-members-section" style="margin-top: 2rem;">
+                        <h3 style="font-size: 1.2rem; margin-bottom: 1rem; color: #333;">👥 가족 구성원</h3>
+                        <div class="family-list" id="familyList">
+                            <div class="empty-state">가족을 선택해주세요.</div>
                         </div>
                     </div>
                 </div>
@@ -864,26 +877,72 @@
     </div>
 
     <!-- 가족 초대 모달 -->
+    <!-- 가족 찾기 모달 -->
+    <div id="findFamilyModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">🔍 가족 찾기</h3>
+                <button class="close-btn" onclick="closeModal('findFamilyModal')">&times;</button>
+            </div>
+            <div style="padding: 1rem 0;">
+                <p style="color: #666; margin-bottom: 1.5rem;">
+                    기존에 등록된 가족을 찾아서 가입할 수 있습니다.
+                </p>
+                <div class="form-group">
+                    <label class="form-label">가족 이름</label>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <input type="text" class="form-input" id="searchFamilyName" placeholder="가족 이름을 입력하세요">
+                        <button type="button" class="btn btn-primary" onclick="searchFamily()" style="white-space: nowrap;">찾기</button>
+                    </div>
+                </div>
+                
+                <!-- 검색 결과 -->
+                <div id="searchFamilyResult" style="margin-top: 1rem;"></div>
+                
+                <!-- 가입 양식 (검색 성공 시 표시) -->
+                <form id="joinFamilyForm" style="display: none; margin-top: 1.5rem; border-top: 1px solid #e5e7eb; padding-top: 1.5rem;">
+                    <div class="form-group">
+                        <label class="form-label">가족 내 닉네임</label>
+                        <input type="text" class="form-input" id="joinFamilyNickname" placeholder="예: 엄마, 아빠, 형 등" required>
+                    </div>
+                    <div class="task-controls">
+                        <button type="submit" class="btn btn-primary">가족 가입하기</button>
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('findFamilyModal')">취소</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 가족 초대 모달 -->
     <div id="inviteModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">가족 초대</h3>
+                <h3 class="modal-title">📱 가족원 초대</h3>
                 <button class="close-btn" onclick="closeModal('inviteModal')">&times;</button>
             </div>
-            <form id="inviteForm">
+            <div style="padding: 1rem 0;">
+                <p style="color: #666; margin-bottom: 1.5rem;">
+                    가족 초대 링크를 생성하여 공유할 수 있습니다.
+                </p>
                 <div class="form-group">
-                    <label class="form-label">핸드폰 번호</label>
-                    <input type="tel" class="form-input" id="invitePhone" placeholder="010-1234-5678" required>
+                    <label class="form-label">현재 가족</label>
+                    <div class="form-input" style="background: #f9fafb; border: none;" id="currentFamilyName">-</div>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">가족 내 닉네임</label>
-                    <input type="text" class="form-input" id="inviteNickname" placeholder="예: 엄마, 아빠, 형 등" required>
+                    <label class="form-label">초대 링크</label>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <input type="text" class="form-input" id="inviteLink" readonly style="background: #f9fafb;">
+                        <button type="button" class="btn btn-primary" onclick="copyInviteLink()" style="white-space: nowrap;">복사</button>
+                    </div>
                 </div>
-                <div class="task-controls">
-                    <button type="submit" class="btn btn-primary">초대 메시지 전송</button>
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('inviteModal')">취소</button>
+                <div style="margin-top: 1rem; padding: 1rem; background: #fef3c7; border-radius: 8px; font-size: 0.875rem;">
+                    💡 이 링크를 가족 구성원에게 공유하면 자동으로 가족에 가입할 수 있습니다.
                 </div>
-            </form>
+                <div class="task-controls" style="margin-top: 1.5rem;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('inviteModal')">닫기</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1176,6 +1235,7 @@
             
             // 폼 이벤트 리스너 등록
             document.getElementById('addTaskForm').addEventListener('submit', handleAddTask);
+            document.getElementById('joinFamilyForm').addEventListener('submit', handleJoinFamily);
             document.getElementById('inviteForm').addEventListener('submit', handleInvite);
             document.getElementById('alarmForm').addEventListener('submit', handleAlarmSetting);
             document.getElementById('templateForm').addEventListener('submit', handleTemplateAdd);
@@ -1244,8 +1304,18 @@
             document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
             
-            // 선택된 탭 활성화
-            event.target.classList.add('active');
+            // 선택된 탭 활성화 (event가 있을 경우에만 사용)
+            if (window.event && window.event.target) {
+                window.event.target.classList.add('active');
+            } else {
+                // 직접 호출된 경우 탭 버튼 찾아서 활성화
+                const tabButtons = document.querySelectorAll('.nav-tab');
+                const tabIndex = ['today', 'manage', 'reward', 'family'].indexOf(tabName);
+                if (tabIndex >= 0 && tabButtons[tabIndex]) {
+                    tabButtons[tabIndex].classList.add('active');
+                }
+            }
+            
             document.getElementById(tabName).classList.add('active');
             
             // 탭별 데이터 로드
@@ -1573,14 +1643,58 @@
         }
 
         // 모든 할 일 로드
-        function loadAllTasks() {
+        async function loadAllTasks() {
             const allTaskList = document.getElementById('allTaskList');
-            allTaskList.innerHTML = '';
-
-            tasks.forEach(task => {
-                const taskElement = createTaskElement(task, false, true);
-                allTaskList.appendChild(taskElement);
-            });
+            
+            if (!currentUser || !currentUser.familyGroupId) {
+                allTaskList.innerHTML = '<div class="empty-state">가족을 먼저 등록해주세요.</div>';
+                return;
+            }
+            
+            allTaskList.innerHTML = '<div class="loading">로딩 중...</div>';
+            
+            try {
+                // 가족의 모든 활성화된 집안일 가져오기
+                const familyChores = await callGAS('getFamilyChores', {
+                    familyId: currentUser.familyGroupId
+                });
+                
+                console.log('가족 집안일 목록:', familyChores);
+                
+                if (!familyChores || familyChores.length === 0) {
+                    allTaskList.innerHTML = '<div class="empty-state">등록된 집안일이 없습니다.</div>';
+                    return;
+                }
+                
+                // choregroup_name별로 그룹화
+                const groupedChores = {};
+                familyChores.forEach(chore => {
+                    const group = chore.choregroup_name || '기타';
+                    if (!groupedChores[group]) {
+                        groupedChores[group] = [];
+                    }
+                    groupedChores[group].push(chore);
+                });
+                
+                // 그룹별로 표시
+                allTaskList.innerHTML = '';
+                Object.keys(groupedChores).forEach(groupName => {
+                    const groupSection = document.createElement('div');
+                    groupSection.className = 'chore-group';
+                    groupSection.innerHTML = `<h3 class="group-title">${groupName}</h3>`;
+                    
+                    groupedChores[groupName].forEach(chore => {
+                        const choreElement = createChoreElement(chore);
+                        groupSection.appendChild(choreElement);
+                    });
+                    
+                    allTaskList.appendChild(groupSection);
+                });
+                
+            } catch (error) {
+                console.error('집안일 목록 로드 오류:', error);
+                allTaskList.innerHTML = '<div class="empty-state">집안일 목록을 불러오는데 실패했습니다.</div>';
+            }
         }
 
         // 할 일 요소 생성
@@ -1842,27 +1956,163 @@
         }
 
         // 가족 데이터 로드
-        function loadFamilyData() {
+        async function loadFamilyData() {
+            await loadMyFamilies();
+            await loadCurrentFamilyMembers();
+        }
+
+        // 내가 속한 가족 목록 로드
+        async function loadMyFamilies() {
+            const myFamiliesList = document.getElementById('myFamiliesList');
+            
+            if (!currentUser || !currentUser.id) {
+                myFamiliesList.innerHTML = '<div class="empty-state">로그인이 필요합니다.</div>';
+                return;
+            }
+            
+            try {
+                myFamiliesList.innerHTML = '<div class="loading">로딩 중...</div>';
+                
+                const families = await callGAS('getAllFamiliesByUserId', {
+                    userId: currentUser.id
+                });
+                
+                console.log('내가 속한 가족들:', families);
+                
+                if (!families || families.length === 0) {
+                    myFamiliesList.innerHTML = '<div class="empty-state">아직 가족이 등록되지 않았습니다.</div>';
+                    return;
+                }
+                
+                myFamiliesList.innerHTML = '';
+                families.forEach(family => {
+                    const familyCard = document.createElement('div');
+                    familyCard.className = 'family-card' + (family.family_id === currentUser.familyGroupId ? ' active' : '');
+                    familyCard.style.cssText = `
+                        padding: 1rem;
+                        border: 2px solid ${family.family_id === currentUser.familyGroupId ? 'rgb(82, 135, 250)' : '#e5e7eb'};
+                        border-radius: 8px;
+                        margin-bottom: 0.5rem;
+                        cursor: pointer;
+                        transition: all 0.2s;
+                        background: ${family.family_id === currentUser.familyGroupId ? '#eff6ff' : 'white'};
+                    `;
+                    
+                    familyCard.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-weight: bold; font-size: 1.1rem; margin-bottom: 0.25rem;">
+                                    ${family.family_name}
+                                </div>
+                                <div style="font-size: 0.875rem; color: #666;">
+                                    내 닉네임: ${family.nick_infamily} • 역할: ${family.role === 'owner' ? '👑 방장' : '👤 멤버'}
+                                </div>
+                            </div>
+                            ${family.family_id === currentUser.familyGroupId ? 
+                                '<span style="color: rgb(82, 135, 250); font-weight: bold;">✓ 현재 선택</span>' : 
+                                '<span style="color: #999; font-size: 0.875rem;">클릭하여 선택</span>'
+                            }
+                        </div>
+                    `;
+                    
+                    familyCard.onclick = () => selectFamily(family);
+                    myFamiliesList.appendChild(familyCard);
+                });
+                
+            } catch (error) {
+                console.error('가족 목록 로드 오류:', error);
+                myFamiliesList.innerHTML = '<div class="empty-state">가족 목록을 불러오는데 실패했습니다.</div>';
+            }
+        }
+
+        // 가족 선택
+        function selectFamily(family) {
+            currentUser.familyGroupId = family.family_id;
+            currentUser.idInFamily = family.id_infamily;
+            currentUser.nickInFamily = family.nick_infamily;
+            
+            // 로컬 스토리지 업데이트
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            
+            // UI 업데이트
+            loadMyFamilies();
+            loadCurrentFamilyMembers();
+            
+            // 오늘/내일 할일 새로고침
+            if (document.getElementById('today').classList.contains('active')) {
+                loadTodayTasks();
+            } else if (document.getElementById('manage').classList.contains('active')) {
+                loadAllTasks();
+            }
+        }
+
+        // 현재 선택된 가족의 구성원 로드
+        async function loadCurrentFamilyMembers() {
             const familyList = document.getElementById('familyList');
-            familyList.innerHTML = '';
+            
+            if (!currentUser || !currentUser.familyGroupId) {
+                familyList.innerHTML = '<div class="empty-state">가족을 선택해주세요.</div>';
+                return;
+            }
+            
+            try {
+                familyList.innerHTML = '<div class="loading">로딩 중...</div>';
+                
+                const members = await callGAS('getFamilyMembers', {
+                    familyId: currentUser.familyGroupId
+                });
+                
+                console.log('가족 구성원:', members);
+                
+                if (!members || members.length === 0) {
+                    familyList.innerHTML = '<div class="empty-state">가족 구성원이 없습니다.</div>';
+                    return;
+                }
+                
+                familyList.innerHTML = '';
+                members.forEach(member => {
+                    const memberElement = document.createElement('div');
+                    memberElement.className = 'family-member';
+                    memberElement.style.cssText = `
+                        display: flex;
+                        align-items: center;
+                        padding: 1rem;
+                        border: 1px solid #e5e7eb;
+                        border-radius: 8px;
+                        margin-bottom: 0.5rem;
+                    `;
 
-            familyMembers.forEach(member => {
-                const memberTasks = tasks.filter(task => task.assignee === member.id);
-                const completedTasks = memberTasks.filter(task => task.status === 'completed').length;
+                    memberElement.innerHTML = `
+                        <div class="member-avatar" style="
+                            width: 50px;
+                            height: 50px;
+                            border-radius: 50%;
+                            background: linear-gradient(135deg, rgb(95, 240, 167), rgb(82, 135, 250));
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-size: 1.5rem;
+                            font-weight: bold;
+                            color: white;
+                            margin-right: 1rem;
+                        ">${member.nick_infamily.charAt(0)}</div>
+                        <div class="member-info" style="flex: 1;">
+                            <div class="member-name" style="font-weight: bold; margin-bottom: 0.25rem;">
+                                ${member.nick_infamily} 
+                                ${member.role === 'owner' ? '<span style="color: rgb(82, 135, 250);">👑</span>' : ''}
+                                ${member.id_infamily === currentUser.idInFamily ? '<span style="color: #999; font-size: 0.875rem;">(나)</span>' : ''}
+                            </div>
+                            <div class="member-id" style="font-size: 0.875rem; color: #666;">ID: ${member.id_infamily}</div>
+                        </div>
+                    `;
 
-                const memberElement = document.createElement('div');
-                memberElement.className = 'family-member';
-
-                memberElement.innerHTML = `
-                    <div class="member-avatar">${member.nickname.charAt(0)}</div>
-                    <div class="member-info">
-                        <div class="member-name">${member.nickname}</div>
-                        <div class="member-tasks">할당된 할 일: ${memberTasks.length}개 • 완료: ${completedTasks}개</div>
-                    </div>
-                `;
-
-                familyList.appendChild(memberElement);
-            });
+                    familyList.appendChild(memberElement);
+                });
+                
+            } catch (error) {
+                console.error('가족 구성원 로드 오류:', error);
+                familyList.innerHTML = '<div class="empty-state">가족 구성원을 불러오는데 실패했습니다.</div>';
+            }
         }
 
         // 조개 개수 로드
@@ -1921,8 +2171,91 @@
 
         // openScheduleModal 함수 제거
 
+        // 가족 찾기 모달 열기
+        function openFindFamilyModal() {
+            document.getElementById('findFamilyModal').classList.add('active');
+            document.getElementById('searchFamilyName').value = '';
+            document.getElementById('searchFamilyResult').innerHTML = '';
+            document.getElementById('joinFamilyForm').style.display = 'none';
+        }
+
+        // 가족 검색
+        let foundFamilyToJoin = null;
+        async function searchFamily() {
+            const familyNameInput = document.getElementById('searchFamilyName');
+            const familyName = familyNameInput.value.trim();
+            const resultDiv = document.getElementById('searchFamilyResult');
+            const joinForm = document.getElementById('joinFamilyForm');
+            
+            if (!familyName) {
+                resultDiv.innerHTML = '<span style="color: #dc2626;">가족 이름을 입력해주세요.</span>';
+                return;
+            }
+            
+            try {
+                resultDiv.innerHTML = '<span style="color: #666;">검색 중...</span>';
+                
+                const response = await callGAS('checkFamilyName', {
+                    familyName: familyName
+                });
+                
+                console.log('가족 검색 결과:', response);
+                
+                if (response && response.error) {
+                    resultDiv.innerHTML = '<span style="color: #dc2626;">❌ ' + (response.message || '검색 중 오류가 발생했습니다.') + '</span>';
+                    joinForm.style.display = 'none';
+                    return;
+                }
+                
+                if (response && response.exists) {
+                    foundFamilyToJoin = response.family;
+                    resultDiv.innerHTML = `
+                        <div style="padding: 1rem; background: #eff6ff; border-radius: 8px; border: 1px solid rgb(82, 135, 250);">
+                            <div style="color: rgb(82, 135, 250); font-weight: bold; margin-bottom: 0.5rem;">✅ 가족을 찾았습니다!</div>
+                            <div style="font-size: 0.875rem; color: #666;">
+                                <div><strong>가족 이름:</strong> ${foundFamilyToJoin.name}</div>
+                                <div><strong>현재 구성원:</strong> ${foundFamilyToJoin.memberCount || 0}명</div>
+                            </div>
+                        </div>
+                    `;
+                    joinForm.style.display = 'block';
+                    document.getElementById('joinFamilyNickname').focus();
+                } else {
+                    foundFamilyToJoin = null;
+                    resultDiv.innerHTML = '<span style="color: #dc2626;">❌ "' + familyName + '" 이름의 가족을 찾을 수 없습니다.</span>';
+                    joinForm.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('가족 검색 오류:', error);
+                resultDiv.innerHTML = '<span style="color: #dc2626;">❌ 검색 중 오류가 발생했습니다: ' + error.message + '</span>';
+                joinForm.style.display = 'none';
+            }
+        }
+
+        // 가족 초대 모달 열기
         function openInviteModal() {
+            if (!currentUser || !currentUser.familyGroupId) {
+                alert('먼저 가족을 선택해주세요.');
+                return;
+            }
+            
             document.getElementById('inviteModal').classList.add('active');
+            
+            // 현재 가족 정보 표시
+            document.getElementById('currentFamilyName').textContent = currentUser.familyName || currentUser.familyGroupId;
+            
+            // 초대 링크 생성
+            const inviteLink = `${window.location.origin}${window.location.pathname}?invite=${currentUser.familyGroupId}`;
+            document.getElementById('inviteLink').value = inviteLink;
+        }
+
+        // 초대 링크 복사
+        function copyInviteLink() {
+            const inviteLinkInput = document.getElementById('inviteLink');
+            inviteLinkInput.select();
+            document.execCommand('copy');
+            
+            alert('초대 링크가 클립보드에 복사되었습니다!');
         }
 
         function openAlarmModal() {
@@ -2066,16 +2399,60 @@
         }
 
         // 가족 초대 처리
+        // 가족 가입 처리
+        async function handleJoinFamily(event) {
+            event.preventDefault();
+            
+            if (!foundFamilyToJoin) {
+                alert('먼저 가족을 검색해주세요.');
+                return;
+            }
+            
+            const nickname = document.getElementById('joinFamilyNickname').value.trim();
+            
+            if (!nickname) {
+                alert('닉네임을 입력해주세요.');
+                return;
+            }
+            
+            try {
+                const response = await callGAS('joinFamily', {
+                    userId: currentUser.id,
+                    familyId: foundFamilyToJoin.id,
+                    nickInFamily: nickname
+                });
+                
+                console.log('가족 가입 응답:', response);
+                
+                if (response && response.idInFamily) {
+                    // 사용자 정보 업데이트
+                    currentUser.familyGroupId = foundFamilyToJoin.id;
+                    currentUser.idInFamily = response.idInFamily;
+                    currentUser.nickInFamily = nickname;
+                    currentUser.familyName = foundFamilyToJoin.name;
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    
+                    alert(`"${foundFamilyToJoin.name}" 가족에 가입되었습니다! 🎉`);
+                    
+                    // 모달 닫기
+                    closeModal('findFamilyModal');
+                    
+                    // 가족 탭으로 이동
+                    showTab('family');
+                    loadFamilyData();
+                } else {
+                    alert('가족 가입에 실패했습니다. 다시 시도해주세요.');
+                }
+            } catch (error) {
+                console.error('가족 가입 오류:', error);
+                alert('가족 가입 중 오류가 발생했습니다: ' + error.message);
+            }
+        }
+
         function handleInvite(event) {
             event.preventDefault();
             
-            const phone = document.getElementById('invitePhone').value;
-            const nickname = document.getElementById('inviteNickname').value;
-            
-            // 실제로는 서버에 초대 요청을 보내야 함
-            alert(`${nickname}님에게 초대 메시지가 전송되었습니다!\n(${phone})`);
-            
-            document.getElementById('inviteForm').reset();
+            // 초대 모달은 링크 복사 방식으로 변경되었으므로 더 이상 폼 제출이 필요 없음
             closeModal('inviteModal');
         }
 
