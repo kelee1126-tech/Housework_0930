@@ -13,7 +13,8 @@ const SHEET_NAMES = {
     FAMILY_MEMBERS: 'Family members',  // 가족 구성원 정보
     ITEM: 'Item',                      // 가전제품 정보
     CHORE: 'Chore',                    // 할 일 정보
-    CHORE_FAMILY: 'Chore_family',      // 가족별 집안일 주기 테이블
+    CHORE_MAIN: 'Chore_main',          // 기본 집안일 템플릿
+    CHORE_FAMILY: 'Chore_family',      // 가족별 집안일 주기 테이블 (prefix)
     LOGS: 'Logs'                       // 활동 로그
 };
 
@@ -68,6 +69,30 @@ function doPost(e) {
                 return createResponse(googleOAuthCallback(data));
             case 'appleOAuthCallback':
                 return createResponse(appleOAuthCallback(data));
+            case 'checkFamilyName':
+                return createResponse(checkFamilyName(data));
+            case 'createFamily':
+                return createResponse(createFamily(data));
+            case 'joinFamily':
+                return createResponse(joinFamily(data));
+            case 'getFamilyChores':
+                return createResponse(getFamilyChores(data.familyId));
+            case 'getAllItems':
+                return createResponse(getAllItems());
+            case 'setFamilyItems':
+                return createResponse(setFamilyItems(data));
+            case 'getAllFamiliesByUserId':
+                return createResponse(getAllFamiliesByUserId(data.userId));
+            case 'assignChoreToMember':
+                return createResponse(assignChoreToMember(data));
+            case 'getTemplateChores':
+                return createResponse(getTemplateChores());
+            case 'setupFamilyChores':
+                return createResponse(setupFamilyChores(data));
+            case 'addCustomChore':
+                return createResponse(addCustomChore(data));
+            case 'getCustomChoreCount':
+                return createResponse(getCustomChoreCount(data));
             default:
                 throw new Error('알 수 없는 액션입니다: ' + action);
         }
@@ -132,7 +157,8 @@ function initializeSheet(sheet, sheetName) {
             
         case SHEET_NAMES.FAMILY_MEMBERS:
             headers = [
-                'id_infamily', 'nick_infamily', 'family_id', 'user_id'
+                'id_infamily', 'family_id', 'user_id', 'nick_infamily', 
+                'role', 'created_at', 'updated_at'
             ];
             break;
             
@@ -148,11 +174,18 @@ function initializeSheet(sheet, sheetName) {
             ];
             break;
             
+        case SHEET_NAMES.CHORE_MAIN:
+            headers = [
+                'chore_id', 'chore_name', 'choregroup_name', 'freq_type', 'freq_value', 
+                'item_id', 'template', 'use'
+            ];
+            break;
+            
         case SHEET_NAMES.CHORE_FAMILY:
             headers = [
-                'today', 'chore_id', 'created_at', 'freq_type', 'freq_value', 
-                'last_date', 'due_date', 'todo_date', 'assignee', 'status', 
-                'color', 'done_id', 'updated_at'
+                'chore_id', 'chore_name', 'choregroup_name', 'freq_type', 'freq_value', 
+                'item_id', 'template', 'use', 'last_date', 'due_date', 'assignee', 
+                'status', 'color', 'created_at', 'updated_at'
             ];
             break;
             
@@ -244,23 +277,63 @@ function updateUserInfo(userData) {
  * 헬퍼 함수들
  */
 
-// 가족 구성원 정보 조회 (user_id로)
+// 가족 구성원 정보 조회 (user_id로) - 첫 번째 가족만 반환
 function getFamilyMemberByUserId(userId) {
     const sheet = getSheet(SHEET_NAMES.FAMILY_MEMBERS);
     const data = sheet.getDataRange().getValues();
     
+    // Family_members 헤더: id_infamily, family_id, user_id, nick_infamily, role, created_at, updated_at
     for (let i = 1; i < data.length; i++) {
-        if (data[i][3] === userId) { // user_id로 필터링
+        if (data[i][2] === userId) { // user_id 컬럼 (인덱스 2)
             return {
-                id_infamily: data[i][0],
-                nick_infamily: data[i][1],
-                family_id: data[i][2],
-                user_id: data[i][3]
+                id_infamily: data[i][0],      // 인덱스 0
+                family_id: data[i][1],        // 인덱스 1
+                user_id: data[i][2],          // 인덱스 2
+                nick_infamily: data[i][3],    // 인덱스 3
+                role: data[i][4] || 'member', // 인덱스 4
+                created_at: data[i][5],       // 인덱스 5
+                updated_at: data[i][6]        // 인덱스 6
             };
         }
     }
     
     return null;
+}
+
+// 사용자의 모든 가족 구성원 정보 조회 (user_id로)
+function getAllFamiliesByUserId(userId) {
+    const sheet = getSheet(SHEET_NAMES.FAMILY_MEMBERS);
+    const data = sheet.getDataRange().getValues();
+    const families = [];
+    
+    // Family_members 헤더: id_infamily, family_id, user_id, nick_infamily, role, created_at, updated_at
+    for (let i = 1; i < data.length; i++) {
+        if (data[i][2] === userId) { // user_id 컬럼 (인덱스 2)
+            // 가족 정보 조회
+            const familySheet = getSheet(SHEET_NAMES.FAMILY);
+            const familyData = familySheet.getDataRange().getValues();
+            let familyName = '';
+            
+            for (let j = 1; j < familyData.length; j++) {
+                if (familyData[j][0] === data[i][1]) { // family_id 매칭
+                    familyName = familyData[j][1];
+                    break;
+                }
+            }
+            
+            families.push({
+                id_infamily: data[i][0],      // 가족 구성원 ID
+                family_id: data[i][1],        // 가족 ID
+                family_name: familyName,      // 가족 이름
+                nick_infamily: data[i][3],    // 가족 내 닉네임
+                role: data[i][4] || 'member', // 역할
+                created_at: data[i][5],
+                updated_at: data[i][6]
+            });
+        }
+    }
+    
+    return families;
 }
 
 // 할 일 기본 정보 조회 (chore_id로)
@@ -465,16 +538,19 @@ function getFamilyMembers(familyId) {
     const data = sheet.getDataRange().getValues();
     const members = [];
     
+    // Family_members 헤더: id_infamily, family_id, user_id, nick_infamily, role, created_at, updated_at
     for (let i = 1; i < data.length; i++) {
-        if (data[i][2] === familyId) { // family_id로 필터링
+        if (data[i][1] === familyId) { // family_id 컬럼 (인덱스 1)
             // 사용자 정보 조회
-            const userInfo = getUserInfo(data[i][3]); // user_id
+            const userInfo = getUserInfo(data[i][2]); // user_id (인덱스 2)
             if (userInfo) {
                 members.push({
-                    user_id: data[i][3], // user_id
-                    name: userInfo.name,
+                    id_infamily: data[i][0],         // 가족 구성원 ID
+                    user_id: data[i][2],             // 실제 사용자 ID
+                    name: userInfo.name,             // 실명
                     phone: userInfo.phone,
-                    nickname: data[i][1], // nick_infamily
+                    nickname: data[i][3],            // 가족 내 닉네임 (인덱스 3)
+                    role: data[i][4] || 'member',    // 역할
                     shell_count: userInfo.shell_person || 0
                 });
             }
@@ -844,9 +920,8 @@ function oauthLogin(data) {
         let user = getUserByEmail(email);
         
         if (!user) {
-            // 새 사용자 생성
+            // 새 사용자 생성 (가족 그룹은 나중에 등록)
             const userId = generateId('USER');
-            const familyId = generateId('FAMILY');
             
             // 사용자 정보 저장
             user = {
@@ -863,28 +938,6 @@ function oauthLogin(data) {
             };
             
             updateUserInfo(user);
-            
-            // 가족 그룹 생성
-            const familySheet = getSheet(SHEET_NAMES.FAMILY);
-            const familyData = [
-                familyId, 
-                name + '의 가족', 
-                userId, 
-                1, 
-                new Date().toISOString(), 
-                new Date().toISOString()
-            ];
-            familySheet.appendRow(familyData);
-            
-            // 가족 구성원 추가
-            const familyMemberSheet = getSheet(SHEET_NAMES.FAMILY_MEMBERS);
-            const familyMemberData = [
-                generateId('IDF'),
-                '나',
-                familyId,
-                userId
-            ];
-            familyMemberSheet.appendRow(familyMemberData);
             
             // 활동 로그 추가
             addActivityLog({
@@ -913,8 +966,11 @@ function oauthLogin(data) {
         const familyMember = getFamilyMemberByUserId(user.user_id);
         
         // 가족 정보 조회
-        let familyGroupName = '내 가족';
+        let familyGroupName = null;
+        let familyGroupId = null;
+        
         if (familyMember && familyMember.family_id) {
+            familyGroupId = familyMember.family_id;
             const familySheet = getSheet(SHEET_NAMES.FAMILY);
             const familyData = familySheet.getDataRange().getValues();
             for (let i = 1; i < familyData.length; i++) {
@@ -927,9 +983,11 @@ function oauthLogin(data) {
         
         return {
             id: user.user_id,
+            idInFamily: familyMember ? familyMember.id_infamily : null,  // 가족 구성원 ID
             name: user.name,
-            nickname: familyMember ? familyMember.nick_infamily : '나',
+            nickname: familyMember ? familyMember.nick_infamily : null,
             familyGroup: familyGroupName,
+            familyGroupId: familyGroupId,
             shellCount: user.shell_person || 0,
             email: user.email,
             picture: user.picture,
@@ -1077,4 +1135,617 @@ function getUserByEmail(email) {
     }
     
     return null;
+}
+
+/**
+ * 가족 이름 중복 확인
+ */
+function checkFamilyName(data) {
+    try {
+        const familyName = data.familyName;
+        const sheet = getSheet(SHEET_NAMES.FAMILY);
+        const familyData = sheet.getDataRange().getValues();
+        
+        // 헤더 제외하고 검색
+        for (let i = 1; i < familyData.length; i++) {
+            if (familyData[i][1] === familyName) { // family_name 컬럼
+                // 가족 구성원 수 조회
+                const membersSheet = getSheet(SHEET_NAMES.FAMILY_MEMBERS);
+                const membersData = membersSheet.getDataRange().getValues();
+                const memberCount = membersData.filter(row => row[1] === familyData[i][0]).length - 1; // 헤더 제외
+                
+                return {
+                    exists: true,
+                    family: {
+                        id: familyData[i][0],
+                        name: familyData[i][1],
+                        created_at: familyData[i][2],
+                        memberCount: memberCount
+                    }
+                };
+            }
+        }
+        
+        // 가족이 없으면
+        return {
+            exists: false
+        };
+    } catch (error) {
+        Logger.log('가족 이름 확인 오류: ' + error.toString());
+        throw new Error('가족 이름 확인 중 오류가 발생했습니다: ' + error.toString());
+    }
+}
+
+/**
+ * 새 가족 생성
+ */
+function createFamily(data) {
+    try {
+        const userId = data.userId;
+        const familyName = data.familyName;
+        const nickname = data.nickname;
+        
+        // 가족 그룹 생성
+        const familySheet = getSheet(SHEET_NAMES.FAMILY);
+        const familyId = 'F' + new Date().getTime();
+        const now = new Date().toISOString();
+        
+        familySheet.appendRow([
+            familyId,
+            familyName,
+            userId,  // created_by
+            1,       // member_count
+            now,
+            now
+        ]);
+        
+        // 가족 구성원에 추가 (첫 번째 구성원이므로 _1)
+        const membersSheet = getSheet(SHEET_NAMES.FAMILY_MEMBERS);
+        const idInFamily = familyId + '_1';
+        
+        membersSheet.appendRow([
+            idInFamily,      // id_infamily (family_id + _1)
+            familyId,        // family_id
+            userId,          // user_id
+            nickname,        // nick_infamily
+            'owner',         // role
+            now,             // created_at
+            now              // updated_at
+        ]);
+        
+        // 가족별 집안일 시트 생성 (Chore_main 템플릿 복사)
+        createFamilyChoreSheet(familyId);
+        
+        Logger.log(`새 가족 생성: ${familyId}, ${familyName}, 구성원ID: ${idInFamily}`);
+        
+        return {
+            success: true,
+            familyId: familyId,
+            familyName: familyName,
+            idInFamily: idInFamily,  // 가족 구성원 ID 반환
+            message: '가족이 생성되었습니다.'
+        };
+    } catch (error) {
+        Logger.log('가족 생성 오류: ' + error.toString());
+        return {
+            success: false,
+            message: '가족 생성 중 오류가 발생했습니다: ' + error.toString()
+        };
+    }
+}
+
+/**
+ * 가족별 집안일 시트 생성 (Chore_main 템플릿 복사)
+ */
+function createFamilyChoreSheet(familyId) {
+    try {
+        const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+        const choreMainSheet = getSheet(SHEET_NAMES.CHORE_MAIN);
+        
+        // 새 시트 이름
+        const newSheetName = SHEET_NAMES.CHORE_FAMILY + '_' + familyId;
+        
+        // 이미 존재하는지 확인
+        let familyChoreSheet = spreadsheet.getSheetByName(newSheetName);
+        if (familyChoreSheet) {
+            Logger.log(`시트가 이미 존재합니다: ${newSheetName}`);
+            return familyChoreSheet;
+        }
+        
+        // Chore_main 시트 복사
+        familyChoreSheet = choreMainSheet.copyTo(spreadsheet);
+        familyChoreSheet.setName(newSheetName);
+        
+        // 복사된 시트의 모든 행 가져오기
+        const dataRange = familyChoreSheet.getDataRange();
+        const data = dataRange.getValues();
+        
+        // use 컬럼에 기본값 'Y' 설정 (헤더 제외)
+        const useColumnIndex = 7; // 'use' 컬럼은 8번째 (0-based index: 7)
+        for (let i = 1; i < data.length; i++) {
+            if (!data[i][useColumnIndex]) {
+                familyChoreSheet.getRange(i + 1, useColumnIndex + 1).setValue('Y');
+            }
+        }
+        
+        Logger.log(`가족 집안일 시트 생성 완료: ${newSheetName}`);
+        return familyChoreSheet;
+        
+    } catch (error) {
+        Logger.log('가족 집안일 시트 생성 오류: ' + error.toString());
+        throw error;
+    }
+}
+
+/**
+ * 가족별 집안일 시트 가져오기
+ */
+function getFamilyChoreSheet(familyId) {
+    try {
+        const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+        const sheetName = SHEET_NAMES.CHORE_FAMILY + '_' + familyId;
+        let sheet = spreadsheet.getSheetByName(sheetName);
+        
+        // 시트가 없으면 생성
+        if (!sheet) {
+            sheet = createFamilyChoreSheet(familyId);
+        }
+        
+        return sheet;
+    } catch (error) {
+        Logger.log('가족 집안일 시트 가져오기 오류: ' + error.toString());
+        throw error;
+    }
+}
+
+/**
+ * 가족별 집안일 목록 조회 (use='Y'인 것만)
+ */
+function getFamilyChores(familyId) {
+    try {
+        const sheet = getFamilyChoreSheet(familyId);
+        const data = sheet.getDataRange().getValues();
+        const headers = data[0];
+        
+        const chores = [];
+        for (let i = 1; i < data.length; i++) {
+            const row = data[i];
+            // use 컬럼이 'Y'인 것만 반환
+            if (row[7] === 'Y') {  // use 컬럼 인덱스
+                chores.push({
+                    chore_id: row[0],
+                    chore_name: row[1],
+                    choregroup_name: row[2],
+                    freq_type: row[3],
+                    freq_value: row[4],
+                    item_id: row[5],
+                    template: row[6],
+                    use: row[7],
+                    last_date: row[8] || null,
+                    due_date: row[9] || null,
+                    assignee: row[10] || null,
+                    status: row[11] || 'todo',
+                    color: row[12] || 'gray',
+                    created_at: row[13] || new Date().toISOString(),
+                    updated_at: row[14] || new Date().toISOString()
+                });
+            }
+        }
+        
+        return chores;
+    } catch (error) {
+        Logger.log('가족 집안일 조회 오류: ' + error.toString());
+        throw error;
+    }
+}
+
+/**
+ * 모든 아이템 목록 조회
+ */
+function getAllItems() {
+    try {
+        const sheet = getSheet(SHEET_NAMES.ITEM);
+        const data = sheet.getDataRange().getValues();
+        
+        const items = [];
+        for (let i = 1; i < data.length; i++) {
+            if (data[i][0]) {  // item_id가 있는 경우만
+                items.push({
+                    item_id: data[i][0],
+                    item_name: data[i][1],
+                    item_at: data[i][2] || ''
+                });
+            }
+        }
+        
+        return items;
+    } catch (error) {
+        Logger.log('아이템 목록 조회 오류: ' + error.toString());
+        throw error;
+    }
+}
+
+/**
+ * 가족 아이템 설정 및 집안일 use 업데이트
+ */
+function setFamilyItems(data) {
+    try {
+        const familyId = data.familyId;
+        const selectedItemIds = data.itemIds || [];  // 선택된 아이템 ID 배열
+        
+        Logger.log(`가족 아이템 설정: ${familyId}, 선택된 아이템: ${selectedItemIds.join(', ')}`);
+        
+        // 가족별 집안일 시트 가져오기
+        const choreFamilySheet = getFamilyChoreSheet(familyId);
+        const choreData = choreFamilySheet.getDataRange().getValues();
+        
+        // 각 집안일의 item_id를 확인하여 use 컬럼 업데이트
+        for (let i = 1; i < choreData.length; i++) {
+            const choreItemId = choreData[i][5];  // item_id 컬럼 (인덱스 5)
+            
+            // item_id가 비어있거나, 선택된 아이템 목록에 포함되어 있으면 'Y', 아니면 'N'
+            let useValue = 'Y';
+            if (choreItemId && choreItemId !== '') {
+                useValue = selectedItemIds.includes(choreItemId) ? 'Y' : 'N';
+            }
+            
+            // use 컬럼 업데이트 (인덱스 7 -> 실제 컬럼 8)
+            choreFamilySheet.getRange(i + 1, 8).setValue(useValue);
+        }
+        
+        Logger.log(`가족 아이템 설정 완료: ${familyId}`);
+        
+        return {
+            success: true,
+            message: '아이템이 설정되었습니다.',
+            itemCount: selectedItemIds.length
+        };
+        
+    } catch (error) {
+        Logger.log('가족 아이템 설정 오류: ' + error.toString());
+        return {
+            success: false,
+            message: '아이템 설정 중 오류가 발생했습니다: ' + error.toString()
+        };
+    }
+}
+
+/**
+ * 템플릿 집안일 목록 조회 (template=1인 것만)
+ */
+function getTemplateChores() {
+    try {
+        const sheet = getSheet(SHEET_NAMES.CHORE_MAIN);
+        const data = sheet.getDataRange().getValues();
+        
+        const templateChores = [];
+        for (let i = 1; i < data.length; i++) {
+            // template 컬럼이 1인 것만
+            if (data[i][6] === 1 || data[i][6] === '1') {  // template 컬럼 (인덱스 6)
+                templateChores.push({
+                    chore_id: data[i][0],
+                    chore_name: data[i][1],
+                    choregroup_name: data[i][2],
+                    freq_type: data[i][3],
+                    freq_value: data[i][4],
+                    item_id: data[i][5],
+                    template: data[i][6],
+                    use: data[i][7] || 'Y'
+                });
+            }
+        }
+        
+        return templateChores;
+    } catch (error) {
+        Logger.log('템플릿 집안일 조회 오류: ' + error.toString());
+        throw error;
+    }
+}
+
+/**
+ * 가족 집안일 설정 (chore_family 시트에 반영)
+ */
+function setupFamilyChores(data) {
+    try {
+        const familyId = data.familyId;
+        const choreSettings = data.choreSettings;  // [{ chore_id, use, freq_value, freq_type }, ...]
+        
+        Logger.log(`가족 집안일 설정: ${familyId}, 설정 개수: ${choreSettings.length}`);
+        
+        // 가족별 집안일 시트 가져오기
+        const choreFamilySheet = getFamilyChoreSheet(familyId);
+        const choreData = choreFamilySheet.getDataRange().getValues();
+        
+        let activeCount = 0;
+        
+        // 각 설정을 시트에 반영
+        choreSettings.forEach(setting => {
+            for (let i = 1; i < choreData.length; i++) {
+                if (choreData[i][0] === setting.chore_id) {  // chore_id 매칭
+                    const row = i + 1;
+                    
+                    // freq_value, freq_type, use 업데이트
+                    choreFamilySheet.getRange(row, 4).setValue(setting.freq_type);   // freq_type
+                    choreFamilySheet.getRange(row, 5).setValue(setting.freq_value);  // freq_value
+                    choreFamilySheet.getRange(row, 8).setValue(setting.use);         // use
+                    choreFamilySheet.getRange(row, 15).setValue(new Date().toISOString()); // updated_at
+                    
+                    if (setting.use === 'Y') {
+                        activeCount++;
+                    }
+                    
+                    break;
+                }
+            }
+        });
+        
+        Logger.log(`가족 집안일 설정 완료: ${familyId}, 활성화: ${activeCount}개`);
+        
+        return {
+            success: true,
+            activeCount: activeCount,
+            message: '집안일이 설정되었습니다.'
+        };
+        
+    } catch (error) {
+        Logger.log('가족 집안일 설정 오류: ' + error.toString());
+        return {
+            success: false,
+            message: '집안일 설정 중 오류가 발생했습니다: ' + error.toString()
+        };
+    }
+}
+
+/**
+ * 가족의 사용자 정의 집안일 개수 조회
+ */
+function getCustomChoreCount(data) {
+    try {
+        const familyId = data.familyId;
+        const choreFamilySheet = getFamilyChoreSheet(familyId);
+        const choreData = choreFamilySheet.getDataRange().getValues();
+        
+        let customCount = 0;
+        
+        // template=0인 것 개수 세기
+        for (let i = 1; i < choreData.length; i++) {
+            if (choreData[i][6] === 0 || choreData[i][6] === '0') {  // template 컬럼
+                customCount++;
+            }
+        }
+        
+        return {
+            count: customCount,
+            limit: 30,
+            remaining: 30 - customCount
+        };
+        
+    } catch (error) {
+        Logger.log('사용자 정의 집안일 개수 조회 오류: ' + error.toString());
+        return {
+            count: 0,
+            limit: 30,
+            remaining: 30
+        };
+    }
+}
+
+/**
+ * 새로운 할 일 추가 (Chore_main + Chore_family 동시 추가)
+ */
+function addCustomChore(data) {
+    try {
+        const familyId = data.familyId;
+        const choreName = data.choreName;
+        const choreGroupName = data.choreGroupName;
+        const freqType = data.freqType;
+        const freqValue = data.freqValue;
+        
+        // 1. 가족의 사용자 정의 집안일 개수 확인
+        const countInfo = getCustomChoreCount({ familyId: familyId });
+        if (countInfo.count >= 30) {
+            return {
+                success: false,
+                message: '가족당 최대 30개의 사용자 정의 집안일만 추가할 수 있습니다.'
+            };
+        }
+        
+        // 2. Chore_main 시트에서 마지막 chore_id 가져오기
+        const choreMainSheet = getSheet(SHEET_NAMES.CHORE_MAIN);
+        const choreMainData = choreMainSheet.getDataRange().getValues();
+        
+        let maxChoreNum = 0;
+        for (let i = 1; i < choreMainData.length; i++) {
+            const choreId = choreMainData[i][0];
+            if (choreId && choreId.startsWith('C')) {
+                const num = parseInt(choreId.substring(1));
+                if (!isNaN(num) && num > maxChoreNum) {
+                    maxChoreNum = num;
+                }
+            }
+        }
+        
+        const newChoreId = 'C' + String(maxChoreNum + 1).padStart(3, '0');
+        const now = new Date().toISOString();
+        
+        Logger.log(`새 집안일 생성: ${newChoreId} - ${choreName}`);
+        
+        // 3. Chore_main 시트에 추가 (template=0)
+        choreMainSheet.appendRow([
+            newChoreId,           // chore_id
+            choreName,            // chore_name
+            choreGroupName,       // choregroup_name
+            freqType,             // freq_type
+            freqValue,            // freq_value
+            '',                   // item_id
+            0,                    // template (사용자 정의)
+            'Y'                   // use
+        ]);
+        
+        // 4. Chore_family 시트에 추가 (use='Y')
+        const choreFamilySheet = getFamilyChoreSheet(familyId);
+        choreFamilySheet.appendRow([
+            newChoreId,           // chore_id
+            choreName,            // chore_name
+            choreGroupName,       // choregroup_name
+            freqType,             // freq_type
+            freqValue,            // freq_value
+            '',                   // item_id
+            0,                    // template
+            'Y',                  // use
+            '',                   // last_date
+            '',                   // due_date
+            '',                   // assignee
+            'todo',               // status
+            'gray',               // color
+            now,                  // created_at
+            now                   // updated_at
+        ]);
+        
+        Logger.log(`새 집안일 추가 완료: ${newChoreId}`);
+        
+        return {
+            success: true,
+            chore_id: newChoreId,
+            remaining: countInfo.remaining - 1,
+            message: '새로운 집안일이 추가되었습니다.'
+        };
+        
+    } catch (error) {
+        Logger.log('새 집안일 추가 오류: ' + error.toString());
+        return {
+            success: false,
+            message: '집안일 추가 중 오류가 발생했습니다: ' + error.toString()
+        };
+    }
+}
+
+/**
+ * 집안일을 가족 구성원에게 할당
+ */
+function assignChoreToMember(data) {
+    try {
+        const familyId = data.family_id;
+        const choreId = data.chore_id;
+        const assignee = data.assignee;  // id_infamily
+        const dueDate = data.due_date;
+        
+        // 가족별 집안일 시트 가져오기
+        const choreFamilySheet = getFamilyChoreSheet(familyId);
+        const choreData = choreFamilySheet.getDataRange().getValues();
+        
+        // 해당 chore_id 찾아서 assignee, due_date, status 업데이트
+        for (let i = 1; i < choreData.length; i++) {
+            if (choreData[i][0] === choreId) {  // chore_id 컬럼
+                const row = i + 1;
+                
+                // 컬럼 인덱스: chore_id(0), chore_name(1), choregroup_name(2), freq_type(3), 
+                //             freq_value(4), item_id(5), template(6), use(7), 
+                //             last_date(8), due_date(9), assignee(10), status(11), color(12)
+                
+                choreFamilySheet.getRange(row, 10).setValue(dueDate || '');      // due_date
+                choreFamilySheet.getRange(row, 11).setValue(assignee || '');     // assignee
+                choreFamilySheet.getRange(row, 12).setValue('todo');             // status
+                choreFamilySheet.getRange(row, 15).setValue(new Date().toISOString()); // updated_at
+                
+                Logger.log(`집안일 할당: ${choreId} -> ${assignee}`);
+                
+                return {
+                    success: true,
+                    message: '집안일이 할당되었습니다.'
+                };
+            }
+        }
+        
+        return {
+            success: false,
+            message: '해당 집안일을 찾을 수 없습니다.'
+        };
+        
+    } catch (error) {
+        Logger.log('집안일 할당 오류: ' + error.toString());
+        return {
+            success: false,
+            message: '집안일 할당 중 오류가 발생했습니다: ' + error.toString()
+        };
+    }
+}
+
+/**
+ * 기존 가족에 가입
+ */
+function joinFamily(data) {
+    try {
+        const userId = data.userId;
+        const familyId = data.familyId;
+        const nickname = data.nickname;
+        
+        // 이미 가입되어 있는지 확인 및 현재 구성원 수 계산
+        const membersSheet = getSheet(SHEET_NAMES.FAMILY_MEMBERS);
+        const membersData = membersSheet.getDataRange().getValues();
+        
+        let memberCount = 0;
+        for (let i = 1; i < membersData.length; i++) {
+            if (membersData[i][1] === familyId) {  // family_id 컬럼
+                memberCount++;
+                if (membersData[i][2] === userId) {  // user_id 컬럼
+                    return {
+                        success: false,
+                        message: '이미 해당 가족에 가입되어 있습니다.'
+                    };
+                }
+            }
+        }
+        
+        // 가족 구성원에 추가 (memberCount + 1번째 구성원)
+        const idInFamily = familyId + '_' + (memberCount + 1);
+        const now = new Date().toISOString();
+        
+        membersSheet.appendRow([
+            idInFamily,      // id_infamily (family_id + _2, _3, ...)
+            familyId,        // family_id
+            userId,          // user_id
+            nickname,        // nick_infamily
+            'member',        // role
+            now,             // created_at
+            now              // updated_at
+        ]);
+        
+        // 가족 이름 및 member_count 업데이트
+        const familySheet = getSheet(SHEET_NAMES.FAMILY);
+        const familyData = familySheet.getDataRange().getValues();
+        let familyName = '';
+        
+        for (let i = 1; i < familyData.length; i++) {
+            if (familyData[i][0] === familyId) {
+                familyName = familyData[i][1];
+                // member_count 업데이트 (3번 인덱스)
+                familySheet.getRange(i + 1, 4).setValue(memberCount + 1);
+                break;
+            }
+        }
+        
+        // 가족별 집안일 시트가 없으면 생성
+        const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+        const choreFamilySheetName = SHEET_NAMES.CHORE_FAMILY + '_' + familyId;
+        if (!spreadsheet.getSheetByName(choreFamilySheetName)) {
+            createFamilyChoreSheet(familyId);
+        }
+        
+        Logger.log(`가족 가입: ${userId} -> ${familyId} (${idInFamily})`);
+        
+        return {
+            success: true,
+            familyId: familyId,
+            familyName: familyName,
+            idInFamily: idInFamily,  // 가족 구성원 ID 반환
+            message: '가족에 가입되었습니다.'
+        };
+    } catch (error) {
+        Logger.log('가족 가입 오류: ' + error.toString());
+        return {
+            success: false,
+            message: '가족 가입 중 오류가 발생했습니다: ' + error.toString()
+        };
+    }
 }

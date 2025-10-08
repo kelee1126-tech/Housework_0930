@@ -959,6 +959,124 @@
         </div>
     </div>
 
+    <!-- 우리집 집안일 등록 모달 -->
+    <div id="choreSetupModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h3 class="modal-title">🏠 우리집 집안일 등록</h3>
+            </div>
+            
+            <div style="text-align: center; margin-bottom: 20px; padding: 15px; background: #f0f9ff; border-radius: 10px;">
+                <p style="margin: 0; color: #1e40af; font-weight: 500;">
+                    우리집에서 할 집안일을 선택하고 주기를 설정해주세요.<br>
+                    <span style="font-size: 0.9rem; color: #64748b;">체크를 해제하면 해당 집안일이 비활성화됩니다.</span>
+                </p>
+            </div>
+
+            <form id="choreSetupForm">
+                <div id="choreSetupList" style="max-height: 500px; overflow-y: auto; padding: 10px;">
+                    <div style="text-align: center; padding: 40px; color: #94a3b8;">
+                        <div style="font-size: 2rem; margin-bottom: 10px;">🧹</div>
+                        집안일 목록을 불러오는 중...
+                    </div>
+                </div>
+
+                <div class="task-controls" style="margin-top: 20px;">
+                    <button type="submit" class="btn btn-primary" id="choreSetupSubmitBtn">
+                        ✅ 설정 완료
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 아이템 선택 모달 -->
+    <div id="itemSelectionModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 class="modal-title">🏠 가족 아이템 선택</h3>
+            </div>
+            
+            <div style="text-align: center; margin-bottom: 20px; padding: 15px; background: #f0f9ff; border-radius: 10px;">
+                <p style="margin: 0; color: #1e40af; font-weight: 500;">
+                    다음 중 가족이 소유한 아이템에 체크해주세요.<br>
+                    <span style="font-size: 0.9rem; color: #64748b;">체크하지 않은 아이템과 관련된 내용은 기본 집안일에서 제외됩니다.</span>
+                </p>
+            </div>
+
+            <form id="itemSelectionForm">
+                <div id="itemsList" style="max-height: 400px; overflow-y: auto; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; background: white;">
+                    <div style="text-align: center; padding: 40px; color: #94a3b8;">
+                        <div style="font-size: 2rem; margin-bottom: 10px;">📦</div>
+                        아이템 목록을 불러오는 중...
+                    </div>
+                </div>
+
+                <div class="task-controls" style="margin-top: 20px;">
+                    <button type="submit" class="btn btn-primary" id="itemSubmitBtn">
+                        ✅ 선택 완료
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 가족 등록 모달 -->
+    <div id="familyRegistrationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">🏠 가족 등록</h3>
+            </div>
+            
+            <div style="text-align: center; margin-bottom: 20px; color: #666;">
+                <p>가족 그룹에 가입하거나 새로운 가족을 만드세요</p>
+            </div>
+
+            <!-- 가족 이름 입력 -->
+            <form id="familyRegistrationForm">
+                <div class="form-group">
+                    <label class="form-label">가족 이름</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" class="form-input" id="familyNameInput" 
+                               placeholder="예: 김씨네 가족, 행복한 우리집" 
+                               required style="flex: 1;">
+                        <button type="button" class="btn btn-secondary" onclick="checkFamilyName()" 
+                                style="white-space: nowrap;">
+                            🔍 찾기 및 중복확인
+                        </button>
+                    </div>
+                    <div id="familyCheckResult" style="margin-top: 10px; font-size: 0.9rem;"></div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">가족 내 닉네임</label>
+                    <input type="text" class="form-input" id="familyNicknameInput" 
+                           placeholder="예: 아빠, 엄마, 큰아들" required>
+                </div>
+
+                <!-- 기존 가족 찾은 경우 표시될 영역 -->
+                <div id="existingFamilyInfo" style="display: none; margin-bottom: 20px;">
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; border-left: 4px solid rgb(82, 135, 250);">
+                        <div style="font-weight: bold; margin-bottom: 10px;">✅ 기존 가족 찾음</div>
+                        <div id="existingFamilyDetails" style="font-size: 0.9rem; color: #666;"></div>
+                        <div style="margin-top: 10px; padding: 10px; background: white; border-radius: 5px;">
+                            <label style="display: flex; align-items: center; cursor: pointer;">
+                                <input type="checkbox" id="confirmJoinFamily" style="margin-right: 8px;">
+                                <span>이 가족에 가입하겠습니다</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="task-controls">
+                    <button type="submit" class="btn btn-primary" id="familyRegisterBtn">
+                        가족 등록
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- 로그인/회원가입 모달 -->
     <div id="authModal" class="modal auth-modal">
         <div class="modal-content">
@@ -1309,32 +1427,134 @@
             loadTomorrowTasks();
         }
 
-        // 내일 할 일 로드
-        function loadTomorrowTasks() {
+        // 내일 할 일 로드 (가족의 모든 집안일 표시 - use='Y'인 것)
+        async function loadTomorrowTasks() {
+            try {
+                const tomorrowTaskList = document.getElementById('tomorrowTaskList');
+                tomorrowTaskList.innerHTML = '<div class="loading"><div class="spinner"></div>할 일을 불러오는 중...</div>';
+                
+                // 가족의 모든 집안일 조회 (use='Y'인 것만)
+                const familyChores = await callGAS('getFamilyChores', { 
+                    familyId: currentUser.familyGroupId 
+                });
+                
+                console.log('가족 집안일 목록:', familyChores);
+                
+                tomorrowTaskList.innerHTML = '';
+
+                if (!familyChores || familyChores.length === 0) {
+                    tomorrowTaskList.innerHTML = '<div class="task-item"><div class="task-info">등록된 집안일이 없습니다. "➕ 새로운 할 일 추가"를 눌러 추가하세요.</div></div>';
+                    return;
+                }
+
+                // choregroup_name별로 그룹화하여 표시
+                const groupedChores = {};
+                familyChores.forEach(chore => {
+                    const group = chore.choregroup_name || '기타';
+                    if (!groupedChores[group]) {
+                        groupedChores[group] = [];
+                    }
+                    groupedChores[group].push(chore);
+                });
+
+                // 그룹별로 렌더링
+                Object.keys(groupedChores).forEach(groupName => {
+                    // 그룹 헤더
+                    const groupHeader = document.createElement('div');
+                    groupHeader.style.cssText = 'font-weight: bold; padding: 15px 10px 10px; color: #1e293b; border-bottom: 2px solid #e2e8f0; margin-top: 20px;';
+                    groupHeader.textContent = `📂 ${groupName}`;
+                    tomorrowTaskList.appendChild(groupHeader);
+
+                    // 그룹 내 집안일들
+                    groupedChores[groupName].forEach(chore => {
+                        const choreElement = createChoreElement(chore);
+                        tomorrowTaskList.appendChild(choreElement);
+                    });
+                });
+                
+            } catch (error) {
+                console.error('내일 할일 로드 오류:', error);
+                const tomorrowTaskList = document.getElementById('tomorrowTaskList');
+                tomorrowTaskList.innerHTML = '<div class="task-item"><div class="task-info" style="color: #dc2626;">❌ 할 일을 불러오는데 실패했습니다.</div></div>';
+            }
+        }
+
+        // 집안일 카드 생성 (내일 할일용 - 선택 가능)
+        function createChoreElement(chore) {
+            const choreDiv = document.createElement('div');
+            choreDiv.className = 'task-item';
+            choreDiv.style.cssText = 'cursor: pointer; transition: all 0.2s;';
+            
+            // 호버 효과
+            choreDiv.onmouseenter = () => choreDiv.style.background = '#f8fafc';
+            choreDiv.onmouseleave = () => choreDiv.style.background = 'white';
+            
+            // 클릭 시 자신에게 할당
+            choreDiv.onclick = async () => {
+                const confirm = window.confirm(`"${chore.chore_name}"을(를) 내일 할 일로 추가하시겠습니까?`);
+                if (confirm) {
+                    await assignChoreToMe(chore);
+                }
+            };
+            
+            choreDiv.innerHTML = `
+                <div class="task-info">
+                    <div class="task-name" style="font-weight: 500; font-size: 1rem;">
+                        ${chore.chore_name}
+                    </div>
+                    <div class="task-meta" style="margin-top: 5px;">
+                        ${chore.freq_type === 'day' ? `📅 ${chore.freq_value}일마다` : `📅 ${chore.freq_value}주마다`}
+                        ${chore.assignee ? ` · 👤 할당됨` : ' · 👥 미할당'}
+                    </div>
+                </div>
+                <div class="task-actions">
+                    <button class="btn btn-small btn-primary" onclick="event.stopPropagation(); assignChoreToMe(${JSON.stringify(chore).replace(/"/g, '&quot;')})">
+                        ➕ 나에게 할당
+                    </button>
+                </div>
+            `;
+            
+            return choreDiv;
+        }
+
+        // 집안일을 나에게 할당
+        async function assignChoreToMe(chore) {
+            try {
+                console.log('집안일 할당:', chore);
+                
+                const taskData = {
+                    chore_id: chore.chore_id,
+                    chore_name: chore.chore_name,
+                    choregroup_name: chore.choregroup_name,
+                    assignee: currentUser.idInFamily,  // 나의 가족 구성원 ID
+                    family_id: currentUser.familyGroupId,
+                    user_id: currentUser.id,
+                    freq_type: chore.freq_type,
+                    freq_value: chore.freq_value,
+                    status: 'todo',
+                    color: chore.color || 'gray',
+                    due_date: getTomorrowDate()
+                };
+                
+                const response = await callGAS('assignChoreToMember', taskData);
+                
+                if (response && response.success) {
+                    alert(`✅ "${chore.chore_name}"이(가) 추가되었습니다!`);
+                    await loadTodayTasks();  // 오늘 할일 새로고침
+                } else {
+                    alert('❌ 할당 실패: ' + (response.message || '알 수 없는 오류'));
+                }
+            } catch (error) {
+                console.error('집안일 할당 오류:', error);
+                alert('할당 중 오류가 발생했습니다.');
+            }
+        }
+
+        // 내일 날짜 가져오기
+        function getTomorrowDate() {
             const tomorrow = new Date();
             tomorrow.setDate(tomorrow.getDate() + 1);
-            const tomorrowDate = tomorrow.toISOString().split('T')[0];
-
-            const tomorrowTasks = tasks.filter(task => {
-                return task.nextDate === tomorrowDate || task.priority === 'red';
-            });
-
-            const tomorrowTaskList = document.getElementById('tomorrowTaskList');
-            tomorrowTaskList.innerHTML = '';
-
-            if (tomorrowTasks.length === 0) {
-                tomorrowTaskList.innerHTML = '<div class="task-item"><div class="task-info">내일 할 일이 없습니다!</div></div>';
-                return;
-            }
-
-            // 우선순위별 정렬 (빨강 > 파랑 > 초록 > 회색)
-            const priorityOrder = { 'red': 1, 'blue': 2, 'green': 3, 'gray': 4 };
-            tomorrowTasks.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
-
-            tomorrowTasks.forEach(task => {
-                const taskElement = createTaskElement(task, false);
-                tomorrowTaskList.appendChild(taskElement);
-            });
+            return tomorrow.toISOString().split('T')[0];
         }
 
         // 모든 할 일 로드
@@ -1708,8 +1928,10 @@
             const taskCycleSelect = document.getElementById('taskCycle').value;
             
             // 커스텀 주기 처리
-            let finalCycle = taskCycleSelect;
-            if (taskCycleSelect === 'custom_days' || taskCycleSelect === 'custom_weeks') {
+            let freqType = 'day';
+            let freqValue = 1;
+            
+            if (taskCycleSelect === 'custom_days') {
                 const customValue = document.getElementById('customCycleValue').value;
                 
                 if (!customValue) {
@@ -1717,41 +1939,65 @@
                     return;
                 }
                 
-                // 입력값 검증
                 const value = parseInt(customValue);
-                if (taskCycleSelect === 'custom_days' && (value < 1 || value > 6)) {
-                    alert('며칠마다는 1일부터 6일까지만 입력 가능합니다.');
+                if (value < 1 || value > 30) {
+                    alert('며칠마다는 1일부터 30일까지만 입력 가능합니다.');
                     return;
                 }
-                if (taskCycleSelect === 'custom_weeks' && (value < 1 || value > 52)) {
+                
+                freqType = 'day';
+                freqValue = value;
+            } else if (taskCycleSelect === 'custom_weeks') {
+                const customValue = document.getElementById('customCycleValue').value;
+                
+                if (!customValue) {
+                    alert('주기 간격을 입력해주세요.');
+                    return;
+                }
+                
+                const value = parseInt(customValue);
+                if (value < 1 || value > 52) {
                     alert('몇주마다는 1주부터 52주까지만 입력 가능합니다.');
                     return;
                 }
                 
-                finalCycle = `${taskCycleSelect}_${customValue}`;
+                freqType = 'week';
+                freqValue = value;
             }
 
             try {
-                const userInfo = await callGAS('getUserInfo', { userId: currentUser.id });
-                const familyMember = await callGAS('getFamilyMemberByUserId', { userId: currentUser.id });
+                // 1. 먼저 사용자 정의 집안일 개수 확인
+                const countInfo = await callGAS('getCustomChoreCount', {
+                    familyId: currentUser.familyGroupId
+                });
                 
-                const newTaskData = {
-                    task_name: taskName,
-                    category: taskCategory,
-                    choregroup_name: taskCategory, // choregroup_name
-                    cycle: finalCycle,
-                    assignee_id: familyMember ? familyMember.id_infamily : currentUser.id, // 가족 구성원 ID 사용
-                    family_id: userInfo.family_id,
-                    status: 'todo',
-                    priority: 'gray',
-                    freq_type: finalCycle.includes('days') ? 'day' : 'week',
-                    freq_value: finalCycle.includes('custom_') ? parseInt(finalCycle.split('_')[2]) : 1
+                if (countInfo.count >= 30) {
+                    alert('❌ 최대 30개의 사용자 정의 집안일까지만 추가할 수 있습니다.\n현재: ' + countInfo.count + '/30개');
+                    return;
+                }
+                
+                // 2. 새로운 집안일 추가 (Chore_main + Chore_family 동시 추가)
+                const newChoreData = {
+                    familyId: currentUser.familyGroupId,
+                    choreName: taskName,
+                    choreGroupName: taskCategory,
+                    freqType: freqType,
+                    freqValue: freqValue
                 };
 
-                await callGAS('addTask', newTaskData);
+                console.log('새로운 할 일 추가:', newChoreData);
+                const response = await callGAS('addCustomChore', newChoreData);
+                
+                if (!response.success) {
+                    alert('❌ ' + response.message);
+                    return;
+                }
                 
                 // 할 일 목록 새로고침
-                await loadTasks();
+                await loadTomorrowTasks();
+                
+                // 성공 메시지
+                alert(`✅ "${taskName}"이(가) 추가되었습니다!\n\n사용자 정의 집안일: ${countInfo.count + 1}/30개\n남은 개수: ${response.remaining}개`);
                 
                 // 폼 초기화
                 document.getElementById('addTaskForm').reset();
@@ -1761,8 +2007,6 @@
                 // UI 업데이트
                 loadTodayTasks();
                 loadAllTasks();
-                
-                alert('새로운 할 일이 추가되었습니다!');
             } catch (error) {
                 console.error('할 일 추가 오류:', error);
                 alert('할 일 추가 중 오류가 발생했습니다.');
@@ -2168,9 +2412,11 @@
                     // 로컬 스토리지에 로그인 정보 저장
                     currentUser = {
                         id: response.id,
+                        idInFamily: response.idInFamily || null,  // 가족 구성원 ID (예: F1728123456_1)
                         name: response.name,
                         nickname: response.nickname || '나',
-                        familyGroup: response.familyGroup || '내 가족',
+                        familyGroup: response.familyGroup || null,
+                        familyGroupId: response.familyGroupId || null,
                         shellCount: response.shellCount || 0,
                         email: response.email,
                         picture: response.picture,
@@ -2180,9 +2426,15 @@
                     localStorage.setItem('isLoggedIn', 'true');
                     localStorage.setItem('currentUser', JSON.stringify(currentUser));
                     
-                    // 메인 앱으로 이동
-                    showMainApp();
-                    alert(`환영합니다, ${currentUser.name}님!`);
+                    // 가족 그룹이 없으면 가족 등록 모달 표시
+                    if (!currentUser.familyGroupId) {
+                        console.log('가족 그룹 없음 -> 가족 등록 모달 표시');
+                        showFamilyRegistrationModal();
+                    } else {
+                        // 메인 앱으로 이동
+                        showMainApp();
+                        alert(`환영합니다, ${currentUser.name}님!`);
+                    }
                 } else {
                     alert('로그인 처리 중 오류가 발생했습니다: ' + response.message);
                 }
@@ -2191,6 +2443,368 @@
                 alert('로그인 중 오류가 발생했습니다.');
             }
         }
+
+        // 가족 등록 모달 표시
+        function showFamilyRegistrationModal() {
+            closeModal('authModal');
+            document.getElementById('familyRegistrationModal').style.display = 'flex';
+            
+            // 폼 초기화
+            document.getElementById('familyNameInput').value = '';
+            document.getElementById('familyNicknameInput').value = '';
+            document.getElementById('familyCheckResult').innerHTML = '';
+            document.getElementById('existingFamilyInfo').style.display = 'none';
+            document.getElementById('confirmJoinFamily').checked = false;
+        }
+
+        // 가족 이름 중복 확인
+        let foundFamily = null;
+        
+        async function checkFamilyName() {
+            const familyName = document.getElementById('familyNameInput').value.trim();
+            const resultDiv = document.getElementById('familyCheckResult');
+            const existingFamilyInfo = document.getElementById('existingFamilyInfo');
+            const nicknameInput = document.getElementById('familyNicknameInput');
+            
+            if (!familyName) {
+                resultDiv.innerHTML = '<span style="color: #dc2626;">❌ 가족 이름을 입력해주세요.</span>';
+                return;
+            }
+
+            try {
+                resultDiv.innerHTML = '<span style="color: #666;">🔍 검색 중...</span>';
+                
+                // 서버에 가족 이름 검색 요청
+                const response = await callGAS('checkFamilyName', {
+                    familyName: familyName
+                });
+
+                console.log('가족 이름 확인 응답:', response);
+
+                if (response.exists) {
+                    // 기존 가족 찾음
+                    foundFamily = response.family;
+                    resultDiv.innerHTML = '<span style="color: rgb(82, 135, 250);">✅ 기존 가족을 찾았습니다!</span>';
+                    
+                    // 기존 가족 정보 표시
+                    document.getElementById('existingFamilyDetails').innerHTML = `
+                        <div><strong>가족 이름:</strong> ${foundFamily.name}</div>
+                        <div><strong>생성일:</strong> ${new Date(foundFamily.created_at).toLocaleDateString()}</div>
+                        <div><strong>구성원 수:</strong> ${foundFamily.memberCount || 0}명</div>
+                    `;
+                    existingFamilyInfo.style.display = 'block';
+                    
+                    // 닉네임 입력란으로 포커스 이동
+                    nicknameInput.focus();
+                } else {
+                    // 사용 가능한 이름
+                    foundFamily = null;
+                    resultDiv.innerHTML = '<span style="color: rgb(95, 240, 167); font-weight: bold;">✅ "' + familyName + '"로 가족 등록이 가능합니다!</span>';
+                    existingFamilyInfo.style.display = 'none';
+                    
+                    // 닉네임 입력란으로 포커스 이동
+                    nicknameInput.focus();
+                }
+            } catch (error) {
+                console.error('가족 이름 확인 오류:', error);
+                resultDiv.innerHTML = '<span style="color: #dc2626;">❌ 서버 통신 오류가 발생했습니다. 잠시 후 다시 시도해주세요.</span>';
+                existingFamilyInfo.style.display = 'none';
+            }
+        }
+
+        // 우리집 집안일 등록 모달 표시
+        async function showChoreSetupModal() {
+            const modal = document.getElementById('choreSetupModal');
+            const choreSetupList = document.getElementById('choreSetupList');
+            
+            modal.style.display = 'flex';
+            
+            try {
+                // 서버에서 템플릿 집안일 목록 가져오기 (template=1)
+                choreSetupList.innerHTML = '<div style="text-align: center; padding: 40px; color: #94a3b8;"><div style="font-size: 2rem; margin-bottom: 10px;">🧹</div>집안일 목록을 불러오는 중...</div>';
+                
+                const response = await callGAS('getTemplateChores', {});
+                
+                if (response && response.length > 0) {
+                    // choregroup_name별로 그룹화
+                    const groupedChores = {};
+                    response.forEach(chore => {
+                        const group = chore.choregroup_name || '기타';
+                        if (!groupedChores[group]) {
+                            groupedChores[group] = [];
+                        }
+                        groupedChores[group].push(chore);
+                    });
+                    
+                    // 집안일 목록 렌더링
+                    let html = '<div style="display: grid; gap: 20px;">';
+                    
+                    Object.keys(groupedChores).forEach(groupName => {
+                        html += `
+                            <div style="border: 2px solid #e2e8f0; border-radius: 12px; padding: 15px; background: white;">
+                                <div style="font-weight: bold; font-size: 1.1rem; color: #1e293b; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #e2e8f0;">
+                                    📂 ${groupName}
+                                </div>
+                                <div style="display: grid; gap: 10px;">
+                        `;
+                        
+                        groupedChores[groupName].forEach(chore => {
+                            const freqUnit = chore.freq_type === 'day' ? '일' : '주';
+                            html += `
+                                <div style="display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc;">
+                                    <input type="checkbox" 
+                                           data-chore-id="${chore.chore_id}" 
+                                           checked 
+                                           style="width: 20px; height: 20px; cursor: pointer;">
+                                    <div style="flex: 1;">
+                                        <div style="font-weight: 500; color: #1e293b;">${chore.chore_name}</div>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <input type="number" 
+                                               data-chore-id="${chore.chore_id}" 
+                                               data-freq-type="${chore.freq_type}"
+                                               class="freq-input"
+                                               value="${chore.freq_value}" 
+                                               min="1" 
+                                               max="${chore.freq_type === 'day' ? '30' : '52'}"
+                                               style="width: 60px; padding: 5px; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center;">
+                                        <span style="color: #64748b; min-width: 30px;">${freqUnit}마다</span>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        
+                        html += `
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    html += '</div>';
+                    choreSetupList.innerHTML = html;
+                } else {
+                    choreSetupList.innerHTML = '<div style="text-align: center; padding: 40px; color: #94a3b8;"><div style="font-size: 2rem; margin-bottom: 10px;">📭</div>템플릿 집안일이 없습니다.</div>';
+                }
+            } catch (error) {
+                console.error('집안일 목록 조회 오류:', error);
+                choreSetupList.innerHTML = '<div style="text-align: center; padding: 40px; color: #dc2626;"><div style="font-size: 2rem; margin-bottom: 10px;">⚠️</div>집안일 목록을 불러오는데 실패했습니다.</div>';
+            }
+        }
+
+        // 집안일 설정 폼 제출
+        document.addEventListener('DOMContentLoaded', function() {
+            const choreSetupForm = document.getElementById('choreSetupForm');
+            if (choreSetupForm) {
+                choreSetupForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const checkboxes = document.querySelectorAll('#choreSetupList input[type="checkbox"]');
+                    const freqInputs = document.querySelectorAll('#choreSetupList input.freq-input');
+                    
+                    const choreSettings = [];
+                    
+                    checkboxes.forEach(checkbox => {
+                        const choreId = checkbox.getAttribute('data-chore-id');
+                        const isChecked = checkbox.checked;
+                        const freqInput = document.querySelector(`input.freq-input[data-chore-id="${choreId}"]`);
+                        const freqValue = parseInt(freqInput.value);
+                        const freqType = freqInput.getAttribute('data-freq-type');
+                        
+                        choreSettings.push({
+                            chore_id: choreId,
+                            use: isChecked ? 'Y' : 'N',
+                            freq_value: freqValue,
+                            freq_type: freqType
+                        });
+                    });
+                    
+                    try {
+                        const submitBtn = document.getElementById('choreSetupSubmitBtn');
+                        submitBtn.disabled = true;
+                        submitBtn.textContent = '처리 중...';
+                        
+                        const response = await callGAS('setupFamilyChores', {
+                            familyId: currentUser.familyGroupId,
+                            choreSettings: choreSettings
+                        });
+                        
+                        if (response.success) {
+                            // 모달 닫기
+                            document.getElementById('choreSetupModal').style.display = 'none';
+                            
+                            // 메인 앱 표시
+                            showMainApp();
+                            alert(`🎉 환영합니다! ${currentUser.familyGroup}에 등록되었습니다.\n집안일: ${response.activeCount}개 활성화`);
+                        } else {
+                            alert('오류: ' + (response.message || '집안일 설정에 실패했습니다.'));
+                        }
+                    } catch (error) {
+                        console.error('집안일 설정 오류:', error);
+                        alert('집안일 설정 중 오류가 발생했습니다.');
+                    } finally {
+                        const submitBtn = document.getElementById('choreSetupSubmitBtn');
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = '✅ 설정 완료';
+                    }
+                });
+            }
+        });
+
+        // 아이템 선택 모달 표시
+        async function showItemSelectionModal() {
+            const modal = document.getElementById('itemSelectionModal');
+            const itemsList = document.getElementById('itemsList');
+            
+            modal.style.display = 'flex';
+            
+            try {
+                // 서버에서 아이템 목록 가져오기
+                itemsList.innerHTML = '<div style="text-align: center; padding: 40px; color: #94a3b8;"><div style="font-size: 2rem; margin-bottom: 10px;">📦</div>아이템 목록을 불러오는 중...</div>';
+                
+                const response = await callGAS('getAllItems', {});
+                
+                if (response && response.length > 0) {
+                    // 아이템 목록 렌더링
+                    let html = '<div style="display: grid; gap: 8px;">';
+                    
+                    response.forEach(item => {
+                        html += `
+                            <label style="display: flex; align-items: center; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s;" 
+                                   onmouseover="this.style.borderColor='rgb(82, 135, 250)'; this.style.background='#f8fafc';" 
+                                   onmouseout="this.style.borderColor='#e2e8f0'; this.style.background='white';">
+                                <input type="checkbox" name="selectedItems" value="${item.item_id}" 
+                                       checked 
+                                       style="margin-right: 12px; width: 18px; height: 18px; cursor: pointer;">
+                                <span style="font-size: 1rem; color: #1e293b;">${item.item_name}</span>
+                                ${item.item_at ? `<span style="margin-left: auto; font-size: 0.85rem; color: #64748b;">${item.item_at}</span>` : ''}
+                            </label>
+                        `;
+                    });
+                    
+                    html += '</div>';
+                    itemsList.innerHTML = html;
+                } else {
+                    itemsList.innerHTML = '<div style="text-align: center; padding: 40px; color: #94a3b8;"><div style="font-size: 2rem; margin-bottom: 10px;">📭</div>아이템이 없습니다.</div>';
+                }
+            } catch (error) {
+                console.error('아이템 목록 조회 오류:', error);
+                itemsList.innerHTML = '<div style="text-align: center; padding: 40px; color: #dc2626;"><div style="font-size: 2rem; margin-bottom: 10px;">⚠️</div>아이템 목록을 불러오는데 실패했습니다.</div>';
+            }
+        }
+
+        // 아이템 선택 폼 제출
+        document.addEventListener('DOMContentLoaded', function() {
+            const itemForm = document.getElementById('itemSelectionForm');
+            if (itemForm) {
+                itemForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const checkboxes = document.querySelectorAll('input[name="selectedItems"]:checked');
+                    const selectedItemIds = Array.from(checkboxes).map(cb => cb.value);
+                    
+                    try {
+                        const submitBtn = document.getElementById('itemSubmitBtn');
+                        submitBtn.disabled = true;
+                        submitBtn.textContent = '처리 중...';
+                        
+                        const response = await callGAS('setFamilyItems', {
+                            familyId: currentUser.familyGroupId,
+                            itemIds: selectedItemIds
+                        });
+                        
+                        if (response.success) {
+                            // 모달 닫기
+                            document.getElementById('itemSelectionModal').style.display = 'none';
+                            
+                            // 우리집 집안일 등록 모달 표시
+                            showChoreSetupModal();
+                        } else {
+                            alert('오류: ' + (response.message || '아이템 설정에 실패했습니다.'));
+                        }
+                    } catch (error) {
+                        console.error('아이템 설정 오류:', error);
+                        alert('아이템 설정 중 오류가 발생했습니다.');
+                    } finally {
+                        const submitBtn = document.getElementById('itemSubmitBtn');
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = '✅ 선택 완료';
+                    }
+                });
+            }
+        });
+
+        // 가족 등록 폼 제출
+        document.addEventListener('DOMContentLoaded', function() {
+            const familyForm = document.getElementById('familyRegistrationForm');
+            if (familyForm) {
+                familyForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const familyName = document.getElementById('familyNameInput').value.trim();
+                    const nickname = document.getElementById('familyNicknameInput').value.trim();
+                    const confirmJoin = document.getElementById('confirmJoinFamily').checked;
+
+                    if (!familyName || !nickname) {
+                        alert('모든 필드를 입력해주세요.');
+                        return;
+                    }
+
+                    // 기존 가족에 가입하는 경우 확인
+                    if (foundFamily && !confirmJoin) {
+                        alert('기존 가족에 가입하려면 체크박스를 선택해주세요.');
+                        return;
+                    }
+
+                    try {
+                        const submitBtn = document.getElementById('familyRegisterBtn');
+                        submitBtn.disabled = true;
+                        submitBtn.textContent = '처리 중...';
+
+                        let response;
+                        
+                        if (foundFamily) {
+                            // 기존 가족에 가입
+                            response = await callGAS('joinFamily', {
+                                userId: currentUser.id,
+                                familyId: foundFamily.id,
+                                nickname: nickname
+                            });
+                        } else {
+                            // 새 가족 생성
+                            response = await callGAS('createFamily', {
+                                userId: currentUser.id,
+                                familyName: familyName,
+                                nickname: nickname
+                            });
+                        }
+
+                        if (response.success) {
+                            // 사용자 정보 업데이트
+                            currentUser.familyGroup = familyName;
+                            currentUser.familyGroupId = response.familyId;
+                            currentUser.idInFamily = response.idInFamily || (response.familyId + '_1');  // 가족 구성원 ID
+                            currentUser.nickname = nickname;
+                            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+
+                            // 모달 닫기
+                            document.getElementById('familyRegistrationModal').style.display = 'none';
+                            
+                            // 아이템 선택 모달 표시
+                            showItemSelectionModal();
+                        } else {
+                            alert('오류: ' + (response.message || '가족 등록에 실패했습니다.'));
+                        }
+                    } catch (error) {
+                        console.error('가족 등록 오류:', error);
+                        alert('가족 등록 중 오류가 발생했습니다.');
+                    } finally {
+                        const submitBtn = document.getElementById('familyRegisterBtn');
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = '가족 등록';
+                    }
+                });
+            }
+        });
 
         // URL에서 OAuth 콜백 처리
         function handleOAuthCallback() {
