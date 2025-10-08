@@ -1237,6 +1237,9 @@
         
         // Google Apps Script 웹앱 URL
         const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwF_pAATqpjfwEHIYxLY4RiFg1O7RqpJGiAzhbWqCONh0uucjtn4L2YKb6zSBOqL8HdcA/exec';
+        
+        // 개발 모드 감지 (localhost)
+        const isDevelopmentMode = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
         // 페이지 로드 시 초기화
         document.addEventListener('DOMContentLoaded', function() {
@@ -1256,14 +1259,27 @@
             // 로그인 상태 확인
             checkLoginStatus();
             
-            // 폼 이벤트 리스너 등록
-            document.getElementById('addTaskForm').addEventListener('submit', handleAddTask);
-            document.getElementById('joinFamilyForm').addEventListener('submit', handleJoinFamily);
-            document.getElementById('inviteForm').addEventListener('submit', handleInvite);
-            document.getElementById('alarmForm').addEventListener('submit', handleAlarmSetting);
-            document.getElementById('templateForm').addEventListener('submit', handleTemplateAdd);
-            document.getElementById('loginForm').addEventListener('submit', handleLogin);
-            document.getElementById('signupForm').addEventListener('submit', handleSignup);
+            // 폼 이벤트 리스너 등록 (요소가 존재하는 경우에만)
+            const addTaskForm = document.getElementById('addTaskForm');
+            if (addTaskForm) addTaskForm.addEventListener('submit', handleAddTask);
+            
+            const joinFamilyForm = document.getElementById('joinFamilyForm');
+            if (joinFamilyForm) joinFamilyForm.addEventListener('submit', handleJoinFamily);
+            
+            const inviteForm = document.getElementById('inviteForm');
+            if (inviteForm) inviteForm.addEventListener('submit', handleInvite);
+            
+            const alarmForm = document.getElementById('alarmForm');
+            if (alarmForm) alarmForm.addEventListener('submit', handleAlarmSetting);
+            
+            const templateForm = document.getElementById('templateForm');
+            if (templateForm) templateForm.addEventListener('submit', handleTemplateAdd);
+            
+            const loginForm = document.getElementById('loginForm');
+            if (loginForm) loginForm.addEventListener('submit', handleLogin);
+            
+            const signupForm = document.getElementById('signupForm');
+            if (signupForm) signupForm.addEventListener('submit', handleSignup);
         }
 
         // 로그인 상태 확인
@@ -1360,9 +1376,22 @@
 
         // Google Apps Script API 호출 함수
         async function callGAS(action, data = {}) {
+            console.log('🔄 GAS API 호출:', action, data);
+            
+            // 개발 모드에서는 샘플 데이터 사용
+            if (isDevelopmentMode) {
+                console.log('🔧 개발 모드: 샘플 데이터 사용');
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        const sampleData = getSampleData(action, data);
+                        console.log('✅ 샘플 데이터 반환:', sampleData);
+                        resolve(sampleData);
+                    }, 300); // 네트워크 지연 시뮬레이션
+                });
+            }
+            
+            // 프로덕션 모드에서는 실제 서버 호출
             try {
-                console.log('🔄 GAS API 호출:', action, data);
-                
                 const formData = new FormData();
                 formData.append('action', action);
                 formData.append('data', JSON.stringify(data));
@@ -1399,7 +1428,7 @@
                 return result.data;
             } catch (error) {
                 console.error('❌ GAS API 호출 오류:', error);
-                throw error;  // 에러를 다시 던져서 호출자가 처리하도록 함
+                throw error;
             }
         }
 
@@ -1483,6 +1512,81 @@
                     };
                 case 'getCategories':
                     return ['주방', '거실', '안방', '다른방', '화장실', '베란다', '현관', '자동차', '강아지', '정원', '계절', '기타'];
+                
+                case 'checkFamilyName':
+                    // 개발 모드용 샘플 응답
+                    const searchName = data.familyName || '';
+                    
+                    // 샘플 가족 데이터
+                    const sampleFamilies = [
+                        { id: 'FAM001', name: '승규네', memberCount: 3, created_at: '2024-09-01T00:00:00Z' },
+                        { id: 'FAM002', name: '승규네집', memberCount: 2, created_at: '2024-09-15T00:00:00Z' },
+                        { id: 'FAM003', name: '행복한집', memberCount: 4, created_at: '2024-08-01T00:00:00Z' }
+                    ];
+                    
+                    // 정확히 일치하는 가족 찾기
+                    const exactMatch = sampleFamilies.find(f => f.name === searchName);
+                    if (exactMatch) {
+                        return {
+                            exists: true,
+                            exactMatch: true,
+                            family: exactMatch
+                        };
+                    }
+                    
+                    // 비슷한 가족 찾기
+                    const similarFamilies = sampleFamilies.filter(f => 
+                        f.name.includes(searchName) || searchName.includes(f.name)
+                    );
+                    
+                    return {
+                        exists: false,
+                        exactMatch: false,
+                        similarFamilies: similarFamilies
+                    };
+                
+                case 'createFamily':
+                    return {
+                        familyId: 'FAM' + Date.now(),
+                        idInFamily: 'FAM' + Date.now() + '_1'
+                    };
+                
+                case 'joinFamily':
+                    return {
+                        idInFamily: data.familyId + '_' + Math.floor(Math.random() * 10 + 2)
+                    };
+                
+                case 'getAllFamiliesByUserId':
+                    return [
+                        {
+                            family_id: 'FAM001',
+                            family_name: '승규네',
+                            id_infamily: 'FAM001_1',
+                            nick_infamily: '아빠',
+                            role: 'owner'
+                        }
+                    ];
+                
+                case 'getFamilyMembers':
+                    return [
+                        { id_infamily: 'FAM001_1', nick_infamily: '아빠', role: 'owner' },
+                        { id_infamily: 'FAM001_2', nick_infamily: '엄마', role: 'member' },
+                        { id_infamily: 'FAM001_3', nick_infamily: '큰아들', role: 'member' }
+                    ];
+                
+                case 'getFamilyChores':
+                    return [];
+                
+                case 'getAllItems':
+                    return [
+                        { item_id: 'ITEM001', item_name: '냉장고' },
+                        { item_id: 'ITEM002', item_name: '세탁기' },
+                        { item_id: 'ITEM003', item_name: '식기세척기' }
+                    ];
+                
+                case 'getTemplateChores':
+                    return [];
+                
                 default:
                     return null;
             }
@@ -2981,6 +3085,7 @@
 
             try {
                 resultDiv.innerHTML = '<span style="color: #666;">🔍 검색 중...</span>';
+                existingFamilyInfo.style.display = 'none';
                 
                 // 서버에 가족 이름 검색 요청
                 const response = await callGAS('checkFamilyName', {
@@ -2992,36 +3097,85 @@
                 // 에러 체크
                 if (response && response.error) {
                     resultDiv.innerHTML = '<span style="color: #dc2626;">❌ ' + (response.message || '서버 오류가 발생했습니다.') + '</span>';
-                    existingFamilyInfo.style.display = 'none';
                     return;
                 }
 
-                if (response && response.exists) {
-                    // 기존 가족 찾음
+                // 정확히 일치하는 가족이 있는 경우
+                if (response && response.exists && response.exactMatch) {
                     foundFamily = response.family;
-                    resultDiv.innerHTML = '<span style="color: rgb(82, 135, 250);">✅ 기존 가족을 찾았습니다!</span>';
                     
-                    // 기존 가족 정보 표시
-                    document.getElementById('existingFamilyDetails').innerHTML = `
-                        <div><strong>가족 이름:</strong> ${foundFamily.name}</div>
-                        <div><strong>생성일:</strong> ${new Date(foundFamily.created_at).toLocaleDateString()}</div>
-                        <div><strong>구성원 수:</strong> ${foundFamily.memberCount || 0}명</div>
-                    `;
-                    existingFamilyInfo.style.display = 'block';
+                    // 사용자에게 물어보기
+                    const confirmJoin = confirm(
+                        `"${foundFamily.name}" 가족이 있습니다.\n\n` +
+                        `현재 구성원: ${foundFamily.memberCount || 0}명\n` +
+                        `생성일: ${new Date(foundFamily.created_at).toLocaleDateString()}\n\n` +
+                        `이 가족으로 등록하시겠습니까?`
+                    );
                     
-                    // 닉네임 입력란으로 포커스 이동
-                    nicknameInput.focus();
-                } else if (response) {
-                    // 사용 가능한 이름
+                    if (confirmJoin) {
+                        // 기존 가족 정보 표시
+                        resultDiv.innerHTML = '<span style="color: rgb(82, 135, 250);">✅ "' + foundFamily.name + '" 가족에 가입합니다.</span>';
+                        document.getElementById('existingFamilyDetails').innerHTML = `
+                            <div><strong>가족 이름:</strong> ${foundFamily.name}</div>
+                            <div><strong>생성일:</strong> ${new Date(foundFamily.created_at).toLocaleDateString()}</div>
+                            <div><strong>구성원 수:</strong> ${foundFamily.memberCount || 0}명</div>
+                        `;
+                        existingFamilyInfo.style.display = 'block';
+                        document.getElementById('confirmJoinFamily').checked = true;
+                        
+                        // 닉네임 입력란으로 포커스 이동
+                        nicknameInput.focus();
+                    } else {
+                        // 사용자가 거절하면 초기화
+                        foundFamily = null;
+                        resultDiv.innerHTML = '<span style="color: #666;">다른 가족 이름을 입력해주세요.</span>';
+                    }
+                    
+                } else if (response && !response.exists) {
+                    // 정확히 일치하는 가족이 없는 경우
                     foundFamily = null;
-                    resultDiv.innerHTML = '<span style="color: rgb(95, 240, 167); font-weight: bold;">✅ "' + familyName + '"로 가족 등록이 가능합니다!</span>';
-                    existingFamilyInfo.style.display = 'none';
                     
-                    // 닉네임 입력란으로 포커스 이동
-                    nicknameInput.focus();
+                    // 비슷한 가족이 있는지 확인
+                    if (response.similarFamilies && response.similarFamilies.length > 0) {
+                        // 비슷한 가족 목록 생성
+                        let similarList = response.similarFamilies.slice(0, 3).map(f => 
+                            `  • ${f.name} (구성원 ${f.memberCount || 0}명)`
+                        ).join('\n');
+                        
+                        const searchSimilar = confirm(
+                            `"${familyName}" 가족이 없습니다.\n\n` +
+                            `비슷한 이름의 가족을 찾았습니다:\n${similarList}\n\n` +
+                            `비슷한 가족을 찾아보시겠습니까?\n` +
+                            `(아니오를 선택하면 새 가족으로 등록됩니다)`
+                        );
+                        
+                        if (searchSimilar) {
+                            // 가족 찾기 모달로 이동
+                            closeModal('familyRegistrationModal');
+                            openFindFamilyModal();
+                            document.getElementById('searchFamilyName').value = familyName;
+                            searchFamily();
+                        } else {
+                            // 새 가족 등록
+                            resultDiv.innerHTML = '<span style="color: rgb(95, 240, 167); font-weight: bold;">✅ "' + familyName + '"로 새 가족을 등록합니다.</span>';
+                            nicknameInput.focus();
+                        }
+                    } else {
+                        // 비슷한 가족도 없는 경우
+                        const confirmNew = confirm(
+                            `"${familyName}" 가족이 없습니다.\n\n` +
+                            `새로운 가족 이름을 등록하시겠습니까?`
+                        );
+                        
+                        if (confirmNew) {
+                            resultDiv.innerHTML = '<span style="color: rgb(95, 240, 167); font-weight: bold;">✅ "' + familyName + '"로 새 가족을 등록합니다.</span>';
+                            nicknameInput.focus();
+                        } else {
+                            resultDiv.innerHTML = '<span style="color: #666;">다른 가족 이름을 입력해주세요.</span>';
+                        }
+                    }
                 } else {
                     resultDiv.innerHTML = '<span style="color: #dc2626;">❌ 응답 형식이 올바르지 않습니다.</span>';
-                    existingFamilyInfo.style.display = 'none';
                 }
             } catch (error) {
                 console.error('가족 이름 확인 오류:', error);
