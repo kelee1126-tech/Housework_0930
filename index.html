@@ -2320,22 +2320,20 @@
 
         // 검색에서 새 가족 만들기
         async function openCreateFamilyFromSearch() {
-            // 기존 가족이 있는지 확인
-            if (currentUser && currentUser.familyGroupId) {
-                const confirmCreate = confirm(
-                    '⚠️ 경고\n\n' +
-                    '이미 가족에 소속되어 있습니다.\n' +
-                    '새 가족을 만들면 기존 가족과 연동되지 않을 수 있습니다.\n\n' +
-                    '그래도 새 가족을 만드시겠습니까?'
-                );
-                
-                if (!confirmCreate) {
-                    return;
-                }
-            }
-            
             // 검색한 가족 이름 가져오기
             const searchedName = document.getElementById('searchFamilyName').value.trim();
+            
+            // 가족 찾기에 실패했을 때 메시지
+            const confirmCreate = confirm(
+                '💡 안내\n\n' +
+                '새 가족을 만들면 기존 가족과 연동되지 않습니다.\n' +
+                '한 사람은 여러 가족에 소속될 수 있습니다.\n\n' +
+                '새 가족을 만드시겠습니까?'
+            );
+            
+            if (!confirmCreate) {
+                return;
+            }
             
             // 가족 찾기 모달 닫기
             closeModal('findFamilyModal');
