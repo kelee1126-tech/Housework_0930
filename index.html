@@ -1939,11 +1939,32 @@
                 return;
             }
 
-                // 예정일 기준으로 정렬 (급한 순서대로 - 예정일이 가까운 것부터)
+                // 색상 우선순위와 예정일 기준으로 정렬
+                // 빨간색(긴급) > 파란색(내가 선택) > 초록색(다른 가족) > 검정색(일반)
                 const sortedChores = familyChores.map(chore => {
                     const dueDate = calculateDueDate(chore);
-                    return { ...chore, calculatedDueDate: new Date(dueDate) };
-                }).sort((a, b) => a.calculatedDueDate - b.calculatedDueDate);
+                    const choreColor = determineChoreColor(chore, currentUser.idInFamily);
+                    
+                    // 색상 우선순위 지정
+                    let colorPriority = 4; // 검정색 기본
+                    if (choreColor.color === '#dc3545') colorPriority = 1; // 빨간색
+                    else if (choreColor.color === '#5287FA') colorPriority = 2; // 파란색
+                    else if (choreColor.color === '#5FF0A7') colorPriority = 3; // 초록색
+                    
+                    return { 
+                        ...chore, 
+                        calculatedDueDate: new Date(dueDate),
+                        colorPriority: colorPriority,
+                        choreColor: choreColor
+                    };
+                }).sort((a, b) => {
+                    // 1차 정렬: 색상 우선순위
+                    if (a.colorPriority !== b.colorPriority) {
+                        return a.colorPriority - b.colorPriority;
+                    }
+                    // 2차 정렬: 예정일이 가까운 순서
+                    return a.calculatedDueDate - b.calculatedDueDate;
+                });
 
                 // 정렬된 순서대로 렌더링 (그룹 분류 없이)
                 sortedChores.forEach(chore => {
@@ -1994,18 +2015,9 @@
                 urgencyColor = '#3b82f6'; // 파란색 (보통)
             }
             
-            // 이미 할당되었는지 확인
-            const isAssigned = chore.assignee === currentUser.idInFamily;
-            
-            // 우선순위 색상 매핑
-            const priorityColors = {
-                'red': '#dc3545',
-                'blue': '#5287FA',
-                'green': '#5FF0A7',
-                'gray': '#6c757d',
-                'black': '#000000'
-            };
-            const priorityColor = priorityColors[chore.color] || priorityColors['gray'];
+            // 색상 결정 로직
+            const choreColor = determineChoreColor(chore, currentUser.idInFamily);
+            const priorityColor = choreColor.color;
             
             choreDiv.innerHTML = `
                 <div style="width: 4px; height: 40px; border-radius: 2px; background-color: ${priorityColor}; margin-right: 12px;"></div>
@@ -2175,6 +2187,63 @@
             const tomorrow = new Date();
             tomorrow.setDate(tomorrow.getDate() + 1);
             return tomorrow.toISOString().split('T')[0];
+        }
+
+        // 집안일 색상 결정 함수
+        function determineChoreColor(chore, myIdInFamily) {
+            const colorMap = {
+                'red': '#dc3545',
+                'blue': '#5287FA',
+                'green': '#5FF0A7',
+                'black': '#000000'
+            };
+            
+            // 1. 파란색: 내가 선택한 일 (assignee가 나인 경우)
+            if (chore.assignee === myIdInFamily) {
+                return { color: colorMap.blue, reason: '내가 선택한 일' };
+            }
+            
+            // 2. 초록색: 다른 가족이 선택한 일 (assignee가 있지만 나는 아닌 경우)
+            if (chore.assignee && chore.assignee !== myIdInFamily) {
+                return { color: colorMap.green, reason: '다른 가족이 선택한 일' };
+            }
+            
+            // 3. 빨간색: 긴급한 일 (아무도 선택하지 않았지만 급한 경우)
+            const lastDate = chore.last_date ? new Date(chore.last_date) : new Date(currentUser.familyJoinDate || Date.now());
+            lastDate.setHours(0, 0, 0, 0);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const daysSinceLastDone = Math.floor((today - lastDate) / (1000 * 60 * 60 * 24));
+            
+            const freqValue = parseInt(chore.freq_value) || 1;
+            const freqType = chore.freq_type;
+            let cycleDays = freqValue;
+            if (freqType === 'w' || freqType === 'week') {
+                cycleDays = freqValue * 7;
+            }
+            
+            const daysLeft = cycleDays - daysSinceLastDone;
+            
+            // 빨간색 조건:
+            // - 매일 해야하는 일 (1일 주기)
+            // - 2일 이하로 남은 일
+            // - 주 단위(1주=7일): 5일 이상 지난 일
+            // - 2주 주기(14일): 12일 이상 지난 일
+            // - 더 긴 주기: 3일 이하로 남은 일
+            if (cycleDays === 1) {
+                return { color: colorMap.red, reason: '매일 해야하는 일' };
+            } else if (daysLeft <= 2) {
+                return { color: colorMap.red, reason: '2일 이하로 남은 일' };
+            } else if (cycleDays === 7 && daysSinceLastDone >= 5) {
+                return { color: colorMap.red, reason: '주간 일정 5일 이상 지남' };
+            } else if (cycleDays === 14 && daysSinceLastDone >= 12) {
+                return { color: colorMap.red, reason: '2주 일정 12일 이상 지남' };
+            } else if (cycleDays > 14 && daysLeft <= 3) {
+                return { color: colorMap.red, reason: '장기 일정 3일 이하 남음' };
+            }
+            
+            // 4. 검정색: 기본 (위 조건에 해당하지 않는 경우)
+            return { color: colorMap.black, reason: '일반 일정' };
         }
 
         // 모든 할 일 로드

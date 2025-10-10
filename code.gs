@@ -1374,27 +1374,9 @@ function createFamilyChoreSheet(familyId) {
         familyChoreSheet.getRange(1, 1, 1, familyHeaders.length).setValues([familyHeaders]);
         familyChoreSheet.getRange(1, 1, 1, familyHeaders.length).setFontWeight('bold');
         
-        // 기본 색상 배열 (집안일 그룹별로 다른 색상 할당)
-        const colorsByGroup = {
-            '주방': 'red',
-            '거실': 'blue',
-            '안방': 'green',
-            '다른방': 'green',
-            '화장실': 'blue',
-            '베란다': 'gray',
-            '현관': 'gray',
-            '자동차': 'black',
-            '강아지': 'green',
-            '정원': 'green',
-            '계절': 'blue',
-            '기타': 'gray'
-        };
-        
         // 각 행에 추가 컬럼 데이터 설정 (헤더 제외)
+        // 색상은 프론트엔드에서 동적으로 결정되므로 기본값은 빈 문자열
         for (let i = 1; i < data.length; i++) {
-            const choreGroup = data[i][2] || '기타';  // choregroup_name
-            const defaultColor = colorsByGroup[choreGroup] || 'gray';
-            
             // use 컬럼 기본값
             if (!data[i][7]) {
                 familyChoreSheet.getRange(i + 1, 8).setValue('Y');
@@ -1405,7 +1387,7 @@ function createFamilyChoreSheet(familyId) {
             familyChoreSheet.getRange(i + 1, 10).setValue('');  // due_date
             familyChoreSheet.getRange(i + 1, 11).setValue('');  // assignee
             familyChoreSheet.getRange(i + 1, 12).setValue('');  // status
-            familyChoreSheet.getRange(i + 1, 13).setValue(defaultColor);  // color
+            familyChoreSheet.getRange(i + 1, 13).setValue('');  // color (프론트엔드에서 동적 결정)
             familyChoreSheet.getRange(i + 1, 14).setValue(new Date().toISOString());  // created_at
             familyChoreSheet.getRange(i + 1, 15).setValue(new Date().toISOString());  // updated_at
         }
@@ -1745,7 +1727,7 @@ function addCustomChore(data) {
             '',                   // due_date
             '',                   // assignee
             'todo',               // status
-            'gray',               // color
+            '',                   // color (프론트엔드에서 동적 결정)
             now,                  // created_at
             now                   // updated_at
         ]);
