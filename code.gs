@@ -1363,12 +1363,51 @@ function createFamilyChoreSheet(familyId) {
         const dataRange = familyChoreSheet.getDataRange();
         const data = dataRange.getValues();
         
-        // use 컬럼에 기본값 'Y' 설정 (헤더 제외)
-        const useColumnIndex = 7; // 'use' 컬럼은 8번째 (0-based index: 7)
+        // Chore_family 형식으로 헤더와 추가 컬럼 설정
+        const familyHeaders = [
+            'chore_id', 'chore_name', 'choregroup_name', 'freq_type', 'freq_value', 
+            'item_id', 'template', 'use', 'last_date', 'due_date', 'assignee', 
+            'status', 'color', 'created_at', 'updated_at'
+        ];
+        
+        // 헤더 업데이트
+        familyChoreSheet.getRange(1, 1, 1, familyHeaders.length).setValues([familyHeaders]);
+        familyChoreSheet.getRange(1, 1, 1, familyHeaders.length).setFontWeight('bold');
+        
+        // 기본 색상 배열 (집안일 그룹별로 다른 색상 할당)
+        const colorsByGroup = {
+            '주방': 'red',
+            '거실': 'blue',
+            '안방': 'green',
+            '다른방': 'green',
+            '화장실': 'blue',
+            '베란다': 'gray',
+            '현관': 'gray',
+            '자동차': 'black',
+            '강아지': 'green',
+            '정원': 'green',
+            '계절': 'blue',
+            '기타': 'gray'
+        };
+        
+        // 각 행에 추가 컬럼 데이터 설정 (헤더 제외)
         for (let i = 1; i < data.length; i++) {
-            if (!data[i][useColumnIndex]) {
-                familyChoreSheet.getRange(i + 1, useColumnIndex + 1).setValue('Y');
+            const choreGroup = data[i][2] || '기타';  // choregroup_name
+            const defaultColor = colorsByGroup[choreGroup] || 'gray';
+            
+            // use 컬럼 기본값
+            if (!data[i][7]) {
+                familyChoreSheet.getRange(i + 1, 8).setValue('Y');
             }
+            
+            // 추가 컬럼들 설정 (last_date부터)
+            familyChoreSheet.getRange(i + 1, 9).setValue('');   // last_date
+            familyChoreSheet.getRange(i + 1, 10).setValue('');  // due_date
+            familyChoreSheet.getRange(i + 1, 11).setValue('');  // assignee
+            familyChoreSheet.getRange(i + 1, 12).setValue('');  // status
+            familyChoreSheet.getRange(i + 1, 13).setValue(defaultColor);  // color
+            familyChoreSheet.getRange(i + 1, 14).setValue(new Date().toISOString());  // created_at
+            familyChoreSheet.getRange(i + 1, 15).setValue(new Date().toISOString());  // updated_at
         }
         
         Logger.log(`가족 집안일 시트 생성 완료: ${newSheetName}`);
