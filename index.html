@@ -1939,30 +1939,14 @@
                 return;
             }
 
-                // 예정일 기준으로 정렬 (급한 순서대로)
+                // 예정일 기준으로 정렬 (급한 순서대로 - 예정일이 가까운 것부터)
                 const sortedChores = familyChores.map(chore => {
                     const dueDate = calculateDueDate(chore);
                     return { ...chore, calculatedDueDate: new Date(dueDate) };
                 }).sort((a, b) => a.calculatedDueDate - b.calculatedDueDate);
 
-                // choregroup_name별로 그룹화하여 표시
-                const groupedChores = {};
+                // 정렬된 순서대로 렌더링 (그룹 분류 없이)
                 sortedChores.forEach(chore => {
-                    const group = chore.choregroup_name || '기타';
-                    if (!groupedChores[group]) {
-                        groupedChores[group] = [];
-                    }
-                    groupedChores[group].push(chore);
-                });
-
-                // 그룹별로 렌더링 (전체 정렬 순서 유지)
-                const allChores = [];
-                sortedChores.forEach(chore => {
-                    allChores.push(chore);
-                });
-                
-                // 정렬된 순서대로 렌더링 (그룹 헤더 없이)
-                allChores.forEach(chore => {
                     const choreElement = createChoreElement(chore);
                     tomorrowTaskList.appendChild(choreElement);
                 });
