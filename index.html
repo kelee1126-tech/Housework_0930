@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>집안일매니저</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&family=Gaegu&family=Poor+Story&family=Single+Day&family=Hi+Melody&display=swap" rel="stylesheet">
     <!-- Google Sign-In API -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <!-- 이미지 관리 파일 -->
@@ -46,6 +50,9 @@
         .header h1 {
             font-size: 1.5rem;
             margin-bottom: 5px;
+            color: #1e40af;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-weight: 700;
         }
 
         .header .user-info {
@@ -171,6 +178,7 @@
         .task-name {
             font-weight: 500;
             margin-bottom: 5px;
+            font-size: 0.9rem;
         }
 
         .task-meta {
@@ -217,6 +225,13 @@
         .btn-primary {
             background: linear-gradient(135deg, rgb(95, 240, 167) 0%, rgb(82, 135, 250) 100%);
             color: white;
+        }
+        
+        .btn-success {
+            background: #10b981;
+            color: white;
+            cursor: not-allowed;
+            opacity: 0.8;
         }
 
         .btn-secondary {
@@ -417,7 +432,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            background: linear-gradient(180deg, #87CEEB 0%, #5FF0A7 100%);
         }
 
         .landing-content {
@@ -429,7 +444,7 @@
         .app-logo h1 {
             font-size: 3rem;
             margin-bottom: 10px;
-            color: #2563EB;
+            color: #1e40af;
             font-weight: 700;
             letter-spacing: -2px;
             white-space: nowrap;
@@ -437,8 +452,10 @@
         }
 
         .app-description {
-            font-size: 1.2rem;
-            color: #666;
+            font-family: 'Hi Melody', cursive;
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #555;
             margin-bottom: 40px;
         }
 
@@ -447,6 +464,7 @@
             flex-direction: column;
             gap: 15px;
             margin-bottom: 50px;
+            margin-top: 50px;
         }
 
         .btn-large {
@@ -471,9 +489,9 @@
         }
 
         .btn-apple {
-            background: #000;
-            color: white;
-            border: 1px solid #000;
+            background: white;
+            color: #333;
+            border: 1px solid #dadce0;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -481,8 +499,8 @@
         }
 
         .btn-apple:hover {
-            background: #333;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            background: #f8f9fa;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
         .btn-icon {
@@ -621,24 +639,6 @@
                     <p class="app-description">가족과 함께하는 스마트한 집안일 관리</p>
                 </div>
                 
-                <div class="auth-buttons">
-                    <button class="btn btn-google btn-large" onclick="loginWithGoogle()">
-                        <svg class="btn-icon" viewBox="0 0 24 24" width="20" height="20">
-                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                        </svg>
-                        Google로 계속하기
-                    </button>
-                    <button class="btn btn-apple btn-large" onclick="loginWithApple()">
-                        <svg class="btn-icon" viewBox="0 0 24 24" width="20" height="20">
-                            <path fill="#000" d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.11-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
-                        </svg>
-                        Apple로 계속하기
-                    </button>
-                </div>
-                
                 <div class="features">
                     <div class="feature-item">
                         <div class="feature-icon">
@@ -664,10 +664,15 @@
                     </div>
                     <div class="feature-item">
                         <div class="feature-icon">
-                            <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-                                <path d="M2 17l10 5 10-5"/>
-                                <path d="M2 12l10 5 10-5"/>
+                            <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <!-- 부채꼴 조개 껍데기 -->
+                                <path d="M 12 21 C 6 21 3 18 3 15 C 3 12 6 10 12 8 C 18 10 21 12 21 15 C 21 18 18 21 12 21 Z"/>
+                                <!-- 조개 무늬 방사형 선들 (위에서 아래로 펼쳐짐) -->
+                                <line x1="12" y1="8" x2="12" y2="21"/>
+                                <line x1="12" y1="8" x2="7" y2="19"/>
+                                <line x1="12" y1="8" x2="17" y2="19"/>
+                                <!-- 조개 위쪽 작은 고리 -->
+                                <circle cx="12" cy="8" r="2"/>
                             </svg>
                         </div>
                         <h3>보상 시스템</h3>
@@ -682,35 +687,53 @@
                         <h3>알람 기능</h3>
                     </div>
                 </div>
+                
+                <div class="auth-buttons">
+                    <button class="btn btn-google btn-large" onclick="loginWithGoogle()" style="min-width: 180px; max-width: 180px; width: 180px;">
+                        <svg class="btn-icon" viewBox="0 0 24 24" width="20" height="20">
+                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                        </svg>
+                        <span style="line-height: 1.3;">Google로<br>계속하기</span>
+                    </button>
+                    <button class="btn btn-apple btn-large" onclick="loginWithApple()" style="min-width: 180px; max-width: 180px; width: 180px;">
+                        <svg class="btn-icon" viewBox="0 0 24 24" width="20" height="20">
+                            <path fill="#000" d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.11-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+                        </svg>
+                        <span style="line-height: 1.3;">Apple로<br>계속하기</span>
+                    </button>
+                </div>
             </div>
         </div>
 
         <!-- 메인 애플리케이션 (로그인 후 표시) -->
         <div id="mainApp" class="main-app" style="display: none;">
-            <!-- 헤더 -->
-            <div class="header">
-                <h1>🏠 집안일매니저</h1>
-                <div class="user-info">
-                    <span id="familyGroup">[가족그룹명]</span>의 <span id="userNickname">[닉네임]</span>
+        <!-- 헤더 -->
+        <div class="header">
+            <h1>🏠 집안일매니저</h1>
+            <div class="user-info">
+                <span id="familyGroup">[가족그룹명]</span>의 <span id="userNickname">[닉네임]</span>
                     <button class="btn btn-small" onclick="logout()" style="margin-left: 10px;">로그아웃</button>
-                </div>
             </div>
+        </div>
 
-            <!-- 네비게이션 탭 -->
-            <div class="nav-tabs">
-                <button class="nav-tab active" onclick="showTab('today')">오늘 할 일</button>
-                <button class="nav-tab" onclick="showTab('manage')">내일 할일</button>
-                <button class="nav-tab" onclick="showTab('reward')">나의 조개</button>
-                <button class="nav-tab" onclick="showTab('family')">가족 관리</button>
-            </div>
+        <!-- 네비게이션 탭 -->
+        <div class="nav-tabs">
+                <button class="nav-tab active" onclick="showTab('today')">오늘 할일</button>
+            <button class="nav-tab" onclick="showTab('manage')">내일 할일</button>
+            <button class="nav-tab" onclick="showTab('reward')">나의 조개</button>
+            <button class="nav-tab" onclick="showTab('family')">가족 관리</button>
+        </div>
 
-            <!-- 메인 컨텐츠 -->
-            <div class="content">
+        <!-- 메인 컨텐츠 -->
+        <div class="content">
             <!-- 오늘 할 일 탭 -->
             <div id="today" class="tab-content active">
                 <div class="today-section">
                     <h2 class="section-title">
-                        📋 오늘 할 일 리스트
+                        📋 오늘 할일 리스트
                         <span style="font-size: 0.8rem; color: #666; font-weight: normal;">
                             (<span id="todayDate"></span>)
                         </span>
@@ -741,10 +764,7 @@
                     
                     <div class="task-controls">
                         <button class="btn btn-primary" onclick="openAddTaskModal()">
-                            ➕ 새로운 할 일 추가
-                        </button>
-                        <button class="btn btn-secondary" onclick="openTemplateModal()">
-                            📋 템플릿 추가
+                            🏠 가족 집안일 관리
                         </button>
                     </div>
 
@@ -819,13 +839,13 @@
                     <!-- 현재 선택된 가족의 구성원 목록 -->
                     <div class="family-members-section" style="margin-top: 2rem;">
                         <h3 style="font-size: 1.2rem; margin-bottom: 1rem; color: #333;">👥 가족 구성원</h3>
-                        <div class="family-list" id="familyList">
+                    <div class="family-list" id="familyList">
                             <div class="empty-state">가족을 선택해주세요.</div>
+                        </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
         </div>
     </div>
 
@@ -893,7 +913,7 @@
                     <div style="display: flex; gap: 0.5rem;">
                         <input type="text" class="form-input" id="searchFamilyName" placeholder="가족 이름을 입력하세요" onkeypress="if(event.key==='Enter'){searchFamily();event.preventDefault();}">
                         <button type="button" class="btn btn-primary" onclick="searchFamily()" style="white-space: nowrap;">찾기</button>
-                    </div>
+                </div>
                 </div>
                 
                 <!-- 검색 결과 -->
@@ -924,15 +944,15 @@
                         <strong id="selectedFamilyDisplay"></strong>
                     </div>
                     
-                    <div class="form-group">
-                        <label class="form-label">가족 내 닉네임</label>
+                <div class="form-group">
+                    <label class="form-label">가족 내 닉네임</label>
                         <input type="text" class="form-input" id="joinFamilyNickname" placeholder="예: 엄마, 아빠, 형 등" required>
-                    </div>
-                    <div class="task-controls">
+                </div>
+                <div class="task-controls">
                         <button type="submit" class="btn btn-primary">가족 가입하기</button>
                         <button type="button" class="btn btn-secondary" onclick="cancelJoinFamily()">취소</button>
-                    </div>
-                </form>
+                </div>
+            </form>
             </div>
         </div>
     </div>
@@ -1231,6 +1251,9 @@
             familyGroup: '우리가족',
             shellCount: 0
         };
+        
+        // 개발 모드용 임시 데이터 저장소
+        let devModeAssignedChores = [];
 
         let tasks = [];
         let familyMembers = [];
@@ -1441,6 +1464,33 @@
         function getSampleData(action, data) {
             switch(action) {
                 case 'getTasks':
+                    // 개발 모드: localStorage에서 할당된 집안일 불러오기
+                    const savedChores = localStorage.getItem('devModeAssignedChores');
+                    if (savedChores) {
+                        devModeAssignedChores = JSON.parse(savedChores);
+                    }
+                    
+                    // 나에게 할당된 집안일만 반환 (오늘 할일용)
+                    const myAssignedChores = devModeAssignedChores.filter(c => 
+                        c.assignee === currentUser.idInFamily
+                    );
+                    
+                    if (myAssignedChores.length > 0) {
+                        return myAssignedChores.map(chore => ({
+                            task_id: chore.chore_id,
+                            task_name: chore.chore_name,
+                            category: chore.choregroup_name,
+                            cycle: chore.freq_type === 'd' ? 'daily' : 'weekly',
+                            assignee_id: chore.assignee,
+                            last_date: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                            next_date: chore.due_date,
+                            status: chore.status,
+                            priority: chore.color,
+                            created_at: chore.assigned_at
+                        }));
+                    }
+                    
+                    // 기본 샘플 데이터
                     return [
                         {
                             task_id: 'CHORE001',
@@ -1551,14 +1601,24 @@
                     };
                 
                 case 'createFamily':
+                    const newFamilyId = 'FAM' + Date.now();
                     return {
-                        familyId: 'FAM' + Date.now(),
-                        idInFamily: 'FAM' + Date.now() + '_1'
+                        success: true,
+                        familyId: newFamilyId,
+                        familyName: data.familyName,
+                        idInFamily: newFamilyId + '_1',
+                        joinDate: new Date().toISOString().split('T')[0],
+                        message: '가족이 생성되었습니다.'
                     };
                 
                 case 'joinFamily':
                     return {
-                        idInFamily: data.familyId + '_' + Math.floor(Math.random() * 10 + 2)
+                        success: true,
+                        familyId: data.familyId,
+                        familyName: '승규네',  // 샘플 가족명
+                        idInFamily: data.familyId + '_' + Math.floor(Math.random() * 10 + 2),
+                        joinDate: new Date().toISOString().split('T')[0],
+                        message: '가족에 가입되었습니다.'
                     };
                 
                 case 'getAllFamiliesByUserId':
@@ -1580,7 +1640,120 @@
                     ];
                 
                 case 'getFamilyChores':
-                    return [];
+                    // 개발 모드용 샘플 집안일 데이터
+                    // localStorage에서 할당된 집안일 불러오기
+                    const savedFamilyChores = localStorage.getItem('devModeAssignedChores');
+                    if (savedFamilyChores) {
+                        devModeAssignedChores = JSON.parse(savedFamilyChores);
+                    }
+                    
+                    const today = new Date();
+                    const baseChores = [
+                        {
+                            chore_id: 'C001',
+                            chore_name: '설거지',
+                            choregroup_name: '주방',
+                            freq_type: 'd',
+                            freq_value: 1,
+                            item_id: 'ITEM001',
+                            template: '1',
+                            use: 'Y',
+                            last_date: new Date(today.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                            due_date: null,
+                            assignee: null,
+                            status: 'todo',
+                            color: 'red'  // 매일 - 빨강 (긴급)
+                        },
+                        {
+                            chore_id: 'C002',
+                            chore_name: '바닥 청소',
+                            choregroup_name: '거실',
+                            freq_type: 'd',
+                            freq_value: 3,
+                            item_id: null,
+                            template: '1',
+                            use: 'Y',
+                            last_date: new Date(today.getTime() - 4 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                            due_date: null,
+                            assignee: null,
+                            status: 'todo',
+                            color: 'blue'  // 3일마다 - 파랑 (보통)
+                        },
+                        {
+                            chore_id: 'C003',
+                            chore_name: '화장실 청소',
+                            choregroup_name: '화장실',
+                            freq_type: 'w',
+                            freq_value: 1,
+                            item_id: null,
+                            template: '1',
+                            use: 'Y',
+                            last_date: new Date(today.getTime() - 8 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                            due_date: null,
+                            assignee: null,
+                            status: 'todo',
+                            color: 'green'  // 1주마다 - 초록 (여유)
+                        },
+                        {
+                            chore_id: 'C004',
+                            chore_name: '세탁',
+                            choregroup_name: '주방',
+                            freq_type: 'd',
+                            freq_value: 2,
+                            item_id: 'ITEM002',
+                            template: '1',
+                            use: 'Y',
+                            last_date: new Date(today.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                            due_date: null,
+                            assignee: null,
+                            status: 'todo',
+                            color: 'blue'  // 2일마다 - 파랑 (보통)
+                        },
+                        {
+                            chore_id: 'C005',
+                            chore_name: '베란다 정리',
+                            choregroup_name: '베란다',
+                            freq_type: 'w',
+                            freq_value: 2,
+                            item_id: null,
+                            template: '1',
+                            use: 'Y',
+                            last_date: new Date(today.getTime() - 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                            due_date: null,
+                            assignee: null,
+                            status: 'todo',
+                            color: 'gray'  // 2주마다 - 회색 (낮은 우선순위)
+                        },
+                        {
+                            chore_id: 'C006',
+                            chore_name: '냉장고 정리',
+                            choregroup_name: '주방',
+                            freq_type: 'w',
+                            freq_value: 1,
+                            item_id: 'ITEM001',
+                            template: '1',
+                            use: 'Y',
+                            last_date: new Date(today.getTime() - 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                            due_date: null,
+                            assignee: null,
+                            status: 'todo',
+                            color: 'black'  // 1주마다 - 검정 (필수)
+                        }
+                    ];
+                    
+                    // 할당된 집안일의 assignee 정보를 baseChores에 반영
+                    return baseChores.map(chore => {
+                        const assigned = devModeAssignedChores.find(ac => ac.chore_id === chore.chore_id);
+                        if (assigned) {
+                            return {
+                                ...chore,
+                                assignee: assigned.assignee,
+                                due_date: assigned.due_date,
+                                status: assigned.status
+                            };
+                        }
+                        return chore;
+                    });
                 
                 case 'getAllItems':
                     return [
@@ -1591,6 +1764,108 @@
                 
                 case 'getTemplateChores':
                     return [];
+                
+                case 'oauthLogin':
+                    // 개발 모드용 OAuth 로그인 응답
+                    return {
+                        id: 'USER' + Date.now(),
+                        name: data.name || '테스트 사용자',
+                        nickname: '테스터',
+                        email: data.email || 'test@example.com',
+                        picture: data.picture || 'https://via.placeholder.com/150',
+                        provider: data.provider || 'google',
+                        familyGroupId: null,  // 처음 로그인이므로 가족 없음
+                        idInFamily: null,
+                        shellCount: 0
+                    };
+                
+                case 'assignChoreToMember':
+                    // 개발 모드용 집안일 할당 응답
+                    // 할당된 집안일을 저장
+                    const assignedChore = {
+                        chore_id: data.chore_id,
+                        chore_name: data.chore_name,
+                        choregroup_name: data.choregroup_name,
+                        assignee: data.assignee,
+                        family_id: data.family_id,
+                        user_id: data.user_id,
+                        freq_type: data.freq_type,
+                        freq_value: data.freq_value,
+                        status: data.status,
+                        color: data.color,
+                        due_date: data.due_date,
+                        assigned_at: new Date().toISOString()
+                    };
+                    
+                    // 중복 체크 후 추가
+                    const existingIndex = devModeAssignedChores.findIndex(c => c.chore_id === data.chore_id);
+                    if (existingIndex >= 0) {
+                        devModeAssignedChores[existingIndex] = assignedChore;
+                    } else {
+                        devModeAssignedChores.push(assignedChore);
+                    }
+                    
+                    // localStorage에도 저장
+                    localStorage.setItem('devModeAssignedChores', JSON.stringify(devModeAssignedChores));
+                    
+                    return {
+                        success: true,
+                        message: '집안일이 할당되었습니다.',
+                        choreId: data.chore_id,
+                        assignee: data.assignee,
+                        dueDate: data.due_date
+                    };
+                
+                case 'unassignChoreFromMember':
+                    // 개발 모드용 집안일 할당 취소 응답
+                    // 할당된 집안일에서 제거
+                    const unassignIndex = devModeAssignedChores.findIndex(c => 
+                        c.chore_id === data.chore_id && c.assignee === data.assignee
+                    );
+                    
+                    if (unassignIndex >= 0) {
+                        devModeAssignedChores.splice(unassignIndex, 1);
+                        // localStorage에도 반영
+                        localStorage.setItem('devModeAssignedChores', JSON.stringify(devModeAssignedChores));
+                    }
+                    
+                    return {
+                        success: true,
+                        message: '집안일 할당이 취소되었습니다.',
+                        choreId: data.chore_id,
+                        assignee: data.assignee
+                    };
+                
+                case 'setFamilyItems':
+                    // 개발 모드용 아이템 설정 응답
+                    return {
+                        success: true,
+                        message: '아이템이 설정되었습니다.',
+                        updatedCount: data.itemIds ? data.itemIds.length : 0
+                    };
+                
+                case 'setupFamilyChores':
+                    // 개발 모드용 집안일 설정 응답
+                    return {
+                        success: true,
+                        message: '집안일이 설정되었습니다.',
+                        updatedCount: data.chores ? data.chores.length : 0
+                    };
+                
+                case 'addCustomChore':
+                    // 개발 모드용 커스텀 집안일 추가 응답
+                    return {
+                        success: true,
+                        message: '새 집안일이 추가되었습니다.',
+                        choreId: 'C' + Date.now()
+                    };
+                
+                case 'getCustomChoreCount':
+                    // 개발 모드용 커스텀 집안일 개수
+                    return {
+                        success: true,
+                        count: 5
+                    };
                 
                 default:
                     return null;
@@ -1657,16 +1932,22 @@
                 
                 console.log('가족 집안일 목록:', familyChores);
                 
-                tomorrowTaskList.innerHTML = '';
+            tomorrowTaskList.innerHTML = '';
 
                 if (!familyChores || familyChores.length === 0) {
                     tomorrowTaskList.innerHTML = '<div class="task-item"><div class="task-info">등록된 집안일이 없습니다. "➕ 새로운 할 일 추가"를 눌러 추가하세요.</div></div>';
-                    return;
-                }
+                return;
+            }
+
+                // 예정일 기준으로 정렬 (급한 순서대로)
+                const sortedChores = familyChores.map(chore => {
+                    const dueDate = calculateDueDate(chore);
+                    return { ...chore, calculatedDueDate: new Date(dueDate) };
+                }).sort((a, b) => a.calculatedDueDate - b.calculatedDueDate);
 
                 // choregroup_name별로 그룹화하여 표시
                 const groupedChores = {};
-                familyChores.forEach(chore => {
+                sortedChores.forEach(chore => {
                     const group = chore.choregroup_name || '기타';
                     if (!groupedChores[group]) {
                         groupedChores[group] = [];
@@ -1674,19 +1955,16 @@
                     groupedChores[group].push(chore);
                 });
 
-                // 그룹별로 렌더링
-                Object.keys(groupedChores).forEach(groupName => {
-                    // 그룹 헤더
-                    const groupHeader = document.createElement('div');
-                    groupHeader.style.cssText = 'font-weight: bold; padding: 15px 10px 10px; color: #1e293b; border-bottom: 2px solid #e2e8f0; margin-top: 20px;';
-                    groupHeader.textContent = `📂 ${groupName}`;
-                    tomorrowTaskList.appendChild(groupHeader);
-
-                    // 그룹 내 집안일들
-                    groupedChores[groupName].forEach(chore => {
-                        const choreElement = createChoreElement(chore);
-                        tomorrowTaskList.appendChild(choreElement);
-                    });
+                // 그룹별로 렌더링 (전체 정렬 순서 유지)
+                const allChores = [];
+                sortedChores.forEach(chore => {
+                    allChores.push(chore);
+                });
+                
+                // 정렬된 순서대로 렌더링 (그룹 헤더 없이)
+                allChores.forEach(chore => {
+                    const choreElement = createChoreElement(chore);
+                    tomorrowTaskList.appendChild(choreElement);
                 });
                 
             } catch (error) {
@@ -1714,19 +1992,57 @@
                 }
             };
             
+            // 예정일 계산
+            const dueDate = calculateDueDate(chore);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const dueDateObj = new Date(dueDate);
+            dueDateObj.setHours(0, 0, 0, 0);
+            const daysLeft = Math.ceil((dueDateObj - today) / (1000 * 60 * 60 * 24));
+            
+            // 급함 정도에 따른 색상
+            let urgencyColor = '#10b981'; // 초록색 (여유)
+            if (daysLeft < 0) {
+                urgencyColor = '#dc2626'; // 빨간색 (지남)
+            } else if (daysLeft <= 1) {
+                urgencyColor = '#f59e0b'; // 주황색 (급함)
+            } else if (daysLeft <= 3) {
+                urgencyColor = '#3b82f6'; // 파란색 (보통)
+            }
+            
+            // 이미 할당되었는지 확인
+            const isAssigned = chore.assignee === currentUser.idInFamily;
+            
+            // 우선순위 색상 매핑
+            const priorityColors = {
+                'red': '#dc3545',
+                'blue': '#5287FA',
+                'green': '#5FF0A7',
+                'gray': '#6c757d',
+                'black': '#000000'
+            };
+            const priorityColor = priorityColors[chore.color] || priorityColors['gray'];
+            
             choreDiv.innerHTML = `
-                <div class="task-info">
-                    <div class="task-name" style="font-weight: 500; font-size: 1rem;">
+                <div style="width: 4px; height: 40px; border-radius: 2px; background-color: ${priorityColor}; margin-right: 12px;"></div>
+                <div class="task-info" style="flex: 1;">
+                    <div class="task-name" style="font-weight: 500; font-size: 1rem; margin-bottom: 6px;">
                         ${chore.chore_name}
                     </div>
-                    <div class="task-meta" style="margin-top: 5px;">
-                        ${chore.freq_type === 'day' ? `📅 ${chore.freq_value}일마다` : `📅 ${chore.freq_value}주마다`}
-                        ${chore.assignee ? ` · 👤 할당됨` : ' · 👥 미할당'}
+                    <div class="task-meta" style="font-size: 0.85rem; color: #64748b; display: flex; flex-wrap: wrap; gap: 8px;">
+                        <span>📅 ${chore.freq_type === 'd' || chore.freq_type === 'day' ? `${chore.freq_value}일마다` : `${chore.freq_value}주마다`}</span>
+                        <span style="color: ${urgencyColor}; font-weight: 500;">
+                            ${daysLeft < 0 ? `⚠️ ${Math.abs(daysLeft)}일 지남` : daysLeft === 0 ? '🔥 오늘까지' : daysLeft === 1 ? '⏰ 내일까지' : `⏱️ ${daysLeft}일 남음`}
+                        </span>
+                        <span>📆 예정일: ${dueDateObj.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}</span>
                     </div>
                 </div>
                 <div class="task-actions">
-                    <button class="btn btn-small btn-primary" onclick="event.stopPropagation(); assignChoreToMe(${JSON.stringify(chore).replace(/"/g, '&quot;')})">
-                        ➕ 나에게 할당
+                    <button class="btn btn-small ${isAssigned ? 'btn-success' : 'btn-primary'}" 
+                            id="assign-btn-${chore.chore_id}"
+                            onclick="event.stopPropagation(); toggleChoreAssignment(${JSON.stringify(chore).replace(/"/g, '&quot;')}, '${chore.chore_id}', ${isAssigned})"
+                            data-assigned="${isAssigned}">
+                        ${isAssigned ? '선택됨' : '내일 할까요?'}
                     </button>
                 </div>
             `;
@@ -1734,10 +2050,30 @@
             return choreDiv;
         }
 
+        // 집안일 할당/취소 토글
+        async function toggleChoreAssignment(chore, choreId, isCurrentlyAssigned) {
+            const button = document.getElementById(`assign-btn-${choreId}`);
+            
+            if (isCurrentlyAssigned) {
+                // 선택 취소
+                await unassignChoreFromMe(chore, choreId, button);
+            } else {
+                // 선택
+                await assignChoreToMe(chore, choreId, button);
+            }
+        }
+
         // 집안일을 나에게 할당
-        async function assignChoreToMe(chore) {
+        async function assignChoreToMe(chore, choreId, button) {
             try {
                 console.log('집안일 할당:', chore);
+                
+                // 버튼 상태 변경
+                if (button) {
+                    button.className = 'btn btn-small btn-success';
+                    button.textContent = '선택됨';
+                    button.setAttribute('data-assigned', 'true');
+                }
                 
                 const taskData = {
                     chore_id: chore.chore_id,
@@ -1749,22 +2085,105 @@
                     freq_type: chore.freq_type,
                     freq_value: chore.freq_value,
                     status: 'todo',
-                    color: chore.color || 'gray',
+                    color: chore.color || 'blue',
                     due_date: getTomorrowDate()
                 };
                 
                 const response = await callGAS('assignChoreToMember', taskData);
                 
                 if (response && response.success) {
-                    alert(`✅ "${chore.chore_name}"이(가) 추가되었습니다!`);
+                    // 팝업 없이 조용히 성공
+                    console.log('✅ 할당 완료:', chore.chore_name);
                     await loadTodayTasks();  // 오늘 할일 새로고침
                 } else {
-                    alert('❌ 할당 실패: ' + (response.message || '알 수 없는 오류'));
+                    // 실패 시에만 알림
+                    const errorMsg = response?.message || '알 수 없는 오류';
+                    alert('❌ 할당 실패: ' + errorMsg);
+                    // 버튼 원상복구
+                    if (button) {
+                        button.className = 'btn btn-small btn-primary';
+                        button.textContent = '내일 할까요?';
+                        button.setAttribute('data-assigned', 'false');
+                    }
                 }
             } catch (error) {
                 console.error('집안일 할당 오류:', error);
-                alert('할당 중 오류가 발생했습니다.');
+                const errorMsg = error?.message || '할당 중 오류가 발생했습니다.';
+                alert(errorMsg);
+                // 버튼 원상복구
+                if (button) {
+                    button.className = 'btn btn-small btn-primary';
+                    button.textContent = '내일 할까요?';
+                    button.setAttribute('data-assigned', 'false');
+                }
             }
+        }
+
+        // 집안일 할당 취소
+        async function unassignChoreFromMe(chore, choreId, button) {
+            try {
+                console.log('집안일 할당 취소:', chore);
+                
+                // 버튼 상태 변경
+                if (button) {
+                    button.className = 'btn btn-small btn-primary';
+                    button.textContent = '내일 할까요?';
+                    button.setAttribute('data-assigned', 'false');
+                }
+                
+                const taskData = {
+                    chore_id: chore.chore_id,
+                    family_id: currentUser.familyGroupId,
+                    assignee: currentUser.idInFamily
+                };
+                
+                const response = await callGAS('unassignChoreFromMember', taskData);
+                
+                if (response && response.success) {
+                    // 팝업 없이 조용히 성공
+                    console.log('✅ 할당 취소 완료:', chore.chore_name);
+                    await loadTodayTasks();  // 오늘 할일 새로고침
+                } else {
+                    // 실패 시에만 알림
+                    const errorMsg = response?.message || '알 수 없는 오류';
+                    alert('❌ 할당 취소 실패: ' + errorMsg);
+                    // 버튼 원상복구
+                    if (button) {
+                        button.className = 'btn btn-small btn-success';
+                        button.textContent = '선택됨';
+                        button.setAttribute('data-assigned', 'true');
+                    }
+                }
+            } catch (error) {
+                console.error('집안일 할당 취소 오류:', error);
+                const errorMsg = error?.message || '할당 취소 중 오류가 발생했습니다.';
+                alert(errorMsg);
+                // 버튼 원상복구
+                if (button) {
+                    button.className = 'btn btn-small btn-success';
+                    button.textContent = '선택됨';
+                    button.setAttribute('data-assigned', 'true');
+                }
+            }
+        }
+
+        // 예정일 계산 함수
+        function calculateDueDate(chore) {
+            const lastDate = chore.last_date ? new Date(chore.last_date) : new Date(currentUser.familyJoinDate || Date.now());
+            lastDate.setHours(0, 0, 0, 0);
+            
+            const freqValue = parseInt(chore.freq_value) || 1;
+            const freqType = chore.freq_type;
+            
+            let daysToAdd = freqValue;
+            if (freqType === 'w' || freqType === 'week') {
+                daysToAdd = freqValue * 7;  // 주를 일로 변환
+            }
+            
+            const dueDate = new Date(lastDate);
+            dueDate.setDate(dueDate.getDate() + daysToAdd);
+            
+            return dueDate.toISOString().split('T')[0];
         }
 
         // 내일 날짜 가져오기
@@ -1809,7 +2228,7 @@
                 });
                 
                 // 그룹별로 표시
-                allTaskList.innerHTML = '';
+            allTaskList.innerHTML = '';
                 Object.keys(groupedChores).forEach(groupName => {
                     const groupSection = document.createElement('div');
                     groupSection.className = 'chore-group';
@@ -2203,8 +2622,8 @@
                 
                 familyList.innerHTML = '';
                 members.forEach(member => {
-                    const memberElement = document.createElement('div');
-                    memberElement.className = 'family-member';
+                const memberElement = document.createElement('div');
+                memberElement.className = 'family-member';
                     memberElement.style.cssText = `
                         display: flex;
                         align-items: center;
@@ -2214,7 +2633,7 @@
                         margin-bottom: 0.5rem;
                     `;
 
-                    memberElement.innerHTML = `
+                memberElement.innerHTML = `
                         <div class="member-avatar" style="
                             width: 50px;
                             height: 50px;
@@ -2235,11 +2654,11 @@
                                 ${member.id_infamily === currentUser.idInFamily ? '<span style="color: #999; font-size: 0.875rem;">(나)</span>' : ''}
                             </div>
                             <div class="member-id" style="font-size: 0.875rem; color: #666;">ID: ${member.id_infamily}</div>
-                        </div>
-                    `;
+                    </div>
+                `;
 
-                    familyList.appendChild(memberElement);
-                });
+                familyList.appendChild(memberElement);
+            });
                 
             } catch (error) {
                 console.error('가족 구성원 로드 오류:', error);
@@ -2870,6 +3289,21 @@
             console.log('🔵 Google 로그인 버튼 클릭됨');
             console.log('클라이언트 ID:', GOOGLE_CLIENT_ID);
             
+            // 개발 모드에서는 테스트 사용자로 자동 로그인
+            if (isDevelopmentMode) {
+                console.log('🔧 개발 모드: 테스트 사용자로 자동 로그인');
+                const testUserData = {
+                    provider: 'google',
+                    email: 'test@example.com',
+                    name: '테스트 사용자',
+                    picture: 'https://via.placeholder.com/150',
+                    id_token: 'dev_token_' + Date.now(),
+                    google_id: 'DEV_USER_ID'
+                };
+                processOAuthLogin(testUserData);
+                return;
+            }
+            
             if (typeof google === 'undefined' || !google.accounts) {
                 console.error('❌ Google API가 로드되지 않음:', typeof google);
                 alert('Google Sign-In API가 로드되지 않았습니다.\n\n해결 방법:\n1. 페이지를 새로고침하고 1-2초 대기\n2. 인터넷 연결 확인\n3. 브라우저 캐시 삭제');
@@ -3226,7 +3660,7 @@
                         `;
                         
                         groupedChores[groupName].forEach(chore => {
-                            const freqUnit = chore.freq_type === 'day' ? '일' : '주';
+                            const freqUnit = (chore.freq_type === 'd' || chore.freq_type === 'day') ? '일' : '주';
                             html += `
                                 <div style="display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc;">
                                     <input type="checkbox" 
@@ -3243,7 +3677,7 @@
                                                class="freq-input"
                                                value="${chore.freq_value}" 
                                                min="1" 
-                                               max="${chore.freq_type === 'day' ? '30' : '52'}"
+                                               max="${(chore.freq_type === 'd' || chore.freq_type === 'day') ? '30' : '52'}"
                                                style="width: 60px; padding: 5px; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center;">
                                         <span style="color: #64748b; min-width: 30px;">${freqUnit}마다</span>
                                     </div>
@@ -3353,7 +3787,6 @@
                                        checked 
                                        style="margin-right: 12px; width: 18px; height: 18px; cursor: pointer;">
                                 <span style="font-size: 1rem; color: #1e293b;">${item.item_name}</span>
-                                ${item.item_at ? `<span style="margin-left: auto; font-size: 0.85rem; color: #64748b;">${item.item_at}</span>` : ''}
                             </label>
                         `;
                     });
@@ -3461,6 +3894,7 @@
                             currentUser.familyGroupId = response.familyId;
                             currentUser.idInFamily = response.idInFamily || (response.familyId + '_1');  // 가족 구성원 ID
                             currentUser.nickname = nickname;
+                            currentUser.familyJoinDate = response.joinDate || new Date().toISOString().split('T')[0];  // 가족 가입일
                             localStorage.setItem('currentUser', JSON.stringify(currentUser));
 
                             // 모달 닫기

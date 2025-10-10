@@ -30,43 +30,82 @@
 ### 시트1: 사용자 정보 (Users)
 | 필드명 | 타입 | 설명 | 예시 |
 |--------|------|------|------|
-| user_id | String | 사용자 고유 ID | USER001 |
+| user_id | String | 사용자 고유 ID | USER00001 |
 | name | String | 실명 | 김철수 |
 | phone | String | 핸드폰 번호 | 010-1234-5678 |
 | email | String | 구글 이메일 | user@gmail.com |
-| nickname | String | 가족 내 닉네임 | 아빠 |
-| family_id | String | 가족 그룹 ID | FAMILY001 |
-| shell_count | Number | 보유 조개 수 | 15 |
-| created_at | DateTime | 생성일시 | 2024-09-30T00:00:00Z |
+| shell_person | Number | 보유 조개 수 | 15 |
+| register_at | DateTime | 생성일시 | 2024-09-30T00:00:00Z |
 | updated_at | DateTime | 수정일시 | 2024-09-30T00:00:00Z |
+| alarm | Time | 알람시간 | 00:00:00Z |
 
-### 시트2: 할 일 정보 (Tasks)
+
+
+
+### 시트2: 가족 그룹 정보 (Family)
 | 필드명 | 타입 | 설명 | 예시 |
 |--------|------|------|------|
-| task_id | String | 할 일 고유 ID | TASK001 |
-| task_name | String | 할 일 이름 | 설거지 |
-| category | String | 카테고리 | 주방, 거실, 화장실, 베란다, 방, 차, 창문, 계절, 기타 |
-| cycle | String | 반복 주기 | daily, weekly, monthly, quarterly, yearly |
-| assignee_id | String | 담당자 ID | USER001 |
-| last_date | Date | 마지막 수행일 | 2024-09-29 |
-| next_date | Date | 다음 수행일 | 2024-09-30 |
-| status | String | 상태 | todo, in-progress, completed |
-| priority | String | 우선순위 색상 | red, blue, green, gray |
-| family_id | String | 가족 그룹 ID | FAMILY001 |
-| created_at | DateTime | 생성일시 | 2024-09-30T00:00:00Z |
-| updated_at | DateTime | 수정일시 | 2024-09-30T00:00:00Z |
-
-### 시트3: 가족 그룹 정보 (Family)
-| 필드명 | 타입 | 설명 | 예시 |
-|--------|------|------|------|
-| family_id | String | 가족 그룹 고유 ID | FAMILY001 |
+| family_id | String | 가족 그룹 고유 ID | F0001 |
 | family_name | String | 가족 그룹명 | 우리가족 |
 | created_by | String | 생성자 ID | USER001 |
 | member_count | Number | 구성원 수 | 3 |
 | created_at | DateTime | 생성일시 | 2024-09-30T00:00:00Z |
 | updated_at | DateTime | 수정일시 | 2024-09-30T00:00:00Z |
 
-### 시트4: 활동 로그 (Logs)
+
+
+### 시트3: 가족 구성원 정보 (Family members)
+| 필드명 | 타입 | 설명 | 예시 |
+|--------|------|------|------|
+| id_infamily| String | 가족구성원 ID | IDF001-01 |
+| nick_infamily | String | 가족 내 닉네임 | 아빠 |
+| family_id | String | 가족 그룹 ID | F001 |
+| user_id | String | 사용자 고유 ID | USER00001 |
+
+
+### 시트4: 가전제품 (Item)
+| 필드명 | 타입 | 설명 | 예시 |
+|--------|------|------|------|
+| item_id | String | 가전제품 ID | I001 |
+| item_name | String | 가전제품 이름 | 식기세척기 |
+| item_at | DateTime | 생성일시 | 2024-09-30T00:00:00Z |
+
+
+### 시트5: 집안일 템플릿 (Chore_main)
+| 필드명 | 타입 | 설명 | 예시 |
+|--------|------|------|------|
+| chore_id | String | 집안일 고유 ID | C001 |
+| chore_name | String | 집안일 이름 | 설거지 |
+| choregroup_name | String | 카테고리 | 주방, 거실, 안방, 다른방, 화장실, 베란다, 현관, 계절, 자동차, 강아지, 정원, 기타 |
+| freq_type | String | 주기 타입 | daily, weekly, monthly |
+| freq_value | Number | 주기 값 (일/주/월) | 1, 7, 30 |
+| item_id | String | 연관 가전제품 ID | I001 |
+| template | Number | 템플릿 여부 (1=기본템플릿, 0=사용자정의) | 1 |
+| use | String | 사용 여부 | Y, N |
+
+**설명**: 
+- `template=1`: 모든 가족에게 제공되는 기본 집안일 템플릿
+- `template=0`: 사용자가 직접 추가한 커스텀 집안일
+- 새 가족 생성 시 이 시트를 복사하여 `Chore_family_{family_id}` 시트 생성
+
+### 시트6: 가족별 집안일 주기 테이블	 (Chore_family)
+| 필드명 | 타입 | 설명 | 예시 |
+|--------|------|------|------|
+| today | Date | 오늘날짜짜 | 2024-09-30 |
+| chore_id | String | 할 일 고유 ID | TASK001 |
+| created_at | DateTime | 시작일 | 2024-09-30T00:00:00Z |
+| freq_type| Date | 주기 (며칠/몇주) | day, week |
+| freq_value| Date | 주기값 (며칠/몇주) | 1-52 |
+| last_date | Date | 마지막 수행일 | 2024-09-29 |
+| due_date | Date | 예정일 | 2024-09-30 |
+| todo_date | Date | 지정일 | 2024-09-30 |
+| assignee | String | 지정한사람 | IDF001-01 |
+| status | String | 상태 | todo, ing, done |
+| color | String | 우선순위 색상 | red, blue, green, gray |
+| done_id | String | 완료한사람 | IDF001-01|
+| updated_at | DateTime | 수정일시 | 2024-09-30T00:00:00Z |
+
+### 시트7: 활동 로그 (Logs)
 | 필드명 | 타입 | 설명 | 예시 |
 |--------|------|------|------|
 | log_id | String | 로그 고유 ID | LOG001 |
@@ -92,9 +131,16 @@
 - 다른 가족이 오늘이나 내일 할 일로 지정한 일
 - 가족 구성원의 계획된 할 일
 
-### ⚫ 검정색 (Gray)
+### ⚫ 검정색 (Black)
 - 기본 설정 할 일
 - 다른 색상에 해당하지 않는 일반적인 할 일
+
+
+### ⚫ 회회색 (Gray)
+- 완료한 할일. 
+- 사용자나 다른 가족이 done 으로 지정한 일일
+
+
 
 ## 🛠️ 설치 및 배포
 
@@ -129,6 +175,7 @@
 
 ### 일상 사용
 1. **오늘 할 일** 탭에서 체크박스 클릭으로 상태 변경
+2. **내일일 할 일** 탭에서 체크박스 클릭으로 내일 할 일 지정정
 2. **할 일 관리** 탭에서 새로운 할 일 추가/수정
 3. **나의 조개** 탭에서 성과 확인
 4. **가족 관리** 탭에서 구성원 초대 및 알림 설정
@@ -137,15 +184,26 @@
 
 ### 할 일 상태 순환
 ```
-할 일 (todo) → 진행중 (in-progress) → 완료 (completed) → 할 일 (todo)
+할 일 (todo) → 진행중 (ing) → 완료 (done) → 할 일 (todo)
 ```
 
-### 주기별 할 일 예시
-- **매일**: 설거지, 바닥청소, 침구정리, 빨래
-- **매주**: 장보기, 화장실청소, 분리수거, 쓰레기버리기
-- **매달**: 현관청소, 베란다정리, 가구먼지제거
-- **분기**: 침구변경, 청소기관리, 식기세척기관리
-- **매년**: 계절별 옷정리, 에어컨점검, 차량관리
+### 주기별 할 일 탬플릿릿
+- **매일**: 설거지, 바닥청소, 침구정리, 빨래, 음식물쓰레기, 부엌 개수대, 화장실 수채구멍, 밥하기, 반찬하기
+ 
+- **매주**: 장보기, 화장실청소(변기, 바닥, 세면대), 분리수거, 쓰레기버리기, 정수기 관리, 비우기첼린지
+- **4주**: 현관, 베란다, 방향제 관리, 가구먼지제거, 베게이불세탁, 스텐그릇/냄비 관리, 전자레인지/토스트기 관리, 에어후라이기 관리, 인덕션/가스렌지 관리, 세탁기 통세탁, 음식물쓰레기관리, 에어컨필터 물세척, 공기청정기 필터 물세척, 가습기 청소
+- **12주**: 침구변경, 운동화/신발, 청소기통 비우기/로봇청소기 관리, 식기세척기관리, 주방후트청소, 운동화/신발 빨래, 샤워기/세면대/주방수전/비대 필터교체, 정수기필터 교체 및 외부세척, 
+- **52주**: 크리스마스 트리 넣기 (1월)
+ 겨울옷 넣고 반팔옷 꺼내기(4월)
+ 커튼빨래(4월)
+ 차 와이퍼 교체 (5월)
+ 선풍기꺼내기 (5월)
+ 옷장 신발장 제습제(6월)
+ 모기장 설치 (8월)
+ 선풍기넣기 (9월)
+ 여름옷 정리, 긴팔 외투 꺼내기(9월)
+ 전기장판/난방기 꺼내기 (10월)
+ 차 에어컨필터 (10월 초)
 
 ## 🎯 개발 원칙
 

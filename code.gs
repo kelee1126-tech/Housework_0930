@@ -85,6 +85,8 @@ function doPost(e) {
                 return createResponse(getAllFamiliesByUserId(data.userId));
             case 'assignChoreToMember':
                 return createResponse(assignChoreToMember(data));
+            case 'unassignChoreFromMember':
+                return createResponse(unassignChoreFromMember(data));
             case 'getTemplateChores':
                 return createResponse(getTemplateChores());
             case 'setupFamilyChores':
@@ -1323,6 +1325,7 @@ function createFamily(data) {
             familyId: familyId,
             familyName: familyName,
             idInFamily: idInFamily,  // 가족 구성원 ID 반환
+            joinDate: now.split('T')[0],  // 가족 가입일 (YYYY-MM-DD 형식)
             message: '가족이 생성되었습니다.'
         };
     } catch (error) {
@@ -1518,23 +1521,29 @@ function getTemplateChores() {
         const sheet = getSheet(SHEET_NAMES.CHORE_MAIN);
         const data = sheet.getDataRange().getValues();
         
+        Logger.log('Chore_main 시트 데이터 행 수: ' + data.length);
+        Logger.log('첫 번째 행 (헤더): ' + JSON.stringify(data[0]));
+        
         const templateChores = [];
         for (let i = 1; i < data.length; i++) {
+            Logger.log(`행 ${i}: template 값 = "${data[i][6]}" (타입: ${typeof data[i][6]})`);
+            
             // template 컬럼이 1인 것만
-            if (data[i][6] === 1 || data[i][6] === '1') {  // template 컬럼 (인덱스 6)
+            if (data[i][6] === 1 || data[i][6] === '1' || String(data[i][6]).trim() === '1') {
                 templateChores.push({
                     chore_id: data[i][0],
                     chore_name: data[i][1],
                     choregroup_name: data[i][2],
                     freq_type: data[i][3],
                     freq_value: data[i][4],
-                    item_id: data[i][5],
+                    item_id: data[i][5] || '',
                     template: data[i][6],
                     use: data[i][7] || 'Y'
                 });
             }
         }
         
+        Logger.log('템플릿 집안일 개수: ' + templateChores.length);
         return templateChores;
     } catch (error) {
         Logger.log('템플릿 집안일 조회 오류: ' + error.toString());
@@ -1772,6 +1781,56 @@ function assignChoreToMember(data) {
 }
 
 /**
+ * 집안일 할당 취소
+ */
+function unassignChoreFromMember(data) {
+    try {
+        const familyId = data.family_id;
+        const choreId = data.chore_id;
+        const assignee = data.assignee;  // id_infamily
+        
+        // 가족별 집안일 시트 가져오기
+        const choreFamilySheet = getFamilyChoreSheet(familyId);
+        const choreData = choreFamilySheet.getDataRange().getValues();
+        
+        // 해당 chore_id 찾아서 assignee, due_date, status 초기화
+        for (let i = 1; i < choreData.length; i++) {
+            if (choreData[i][0] === choreId && choreData[i][10] === assignee) {  // chore_id와 assignee 모두 일치
+                const row = i + 1;
+                
+                // 컬럼 인덱스: chore_id(0), chore_name(1), choregroup_name(2), freq_type(3), 
+                //             freq_value(4), item_id(5), template(6), use(7), 
+                //             last_date(8), due_date(9), assignee(10), status(11), color(12)
+                
+                choreFamilySheet.getRange(row, 10).setValue('');      // due_date 초기화
+                choreFamilySheet.getRange(row, 11).setValue('');      // assignee 초기화
+                choreFamilySheet.getRange(row, 12).setValue('');      // status 초기화
+                choreFamilySheet.getRange(row, 15).setValue(new Date().toISOString()); // updated_at
+                
+                Logger.log(`집안일 할당 취소: ${choreId} (${assignee})`);
+                
+                return {
+                    success: true,
+                    message: '집안일 할당이 취소되었습니다.'
+                };
+            }
+        }
+        
+        return {
+            success: false,
+            message: '할당된 집안일을 찾을 수 없습니다.'
+        };
+        
+    } catch (error) {
+        Logger.log('집안일 할당 취소 오류: ' + error.toString());
+        return {
+            success: false,
+            message: '집안일 할당 취소 중 오류가 발생했습니다: ' + error.toString()
+        };
+    }
+}
+
+/**
  * 기존 가족에 가입
  */
 function joinFamily(data) {
@@ -1839,6 +1898,7 @@ function joinFamily(data) {
             familyId: familyId,
             familyName: familyName,
             idInFamily: idInFamily,  // 가족 구성원 ID 반환
+            joinDate: now.split('T')[0],  // 가족 가입일 (YYYY-MM-DD 형식)
             message: '가족에 가입되었습니다.'
         };
     } catch (error) {
