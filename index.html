@@ -888,9 +888,14 @@
                         1일부터 6일까지 입력 가능합니다.
                     </div>
                 </div>
-                <div class="task-controls">
-                    <button type="submit" class="btn btn-primary">추가하기</button>
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('addTaskModal')">취소</button>
+                <div class="task-controls" style="display: flex; justify-content: space-between; align-items: center;">
+                    <button type="button" class="btn" onclick="openTemplateSetupFlow()" style="background: #059669; color: white; border: none;">
+                        📋 기본 템플릿 보기
+                    </button>
+                    <div style="display: flex; gap: 10px;">
+                        <button type="submit" class="btn btn-primary">추가하기</button>
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('addTaskModal')">취소</button>
+                    </div>
                 </div>
             </form>
         </div>
@@ -1764,6 +1769,35 @@
                 
                 case 'getTemplateChores':
                     return [];
+                
+                case 'getAllFamilyChoresForSetup':
+                    // 개발 모드용 가족 집안일 전체 조회 (use='Y', 'N' 모두)
+                    return [
+                        {
+                            chore_id: 'C001',
+                            chore_name: '설거지',
+                            choregroup_name: '주방',
+                            freq_type: 'd',
+                            freq_value: 1,
+                            use: 'Y'
+                        },
+                        {
+                            chore_id: 'C002',
+                            chore_name: '바닥청소',
+                            choregroup_name: '거실',
+                            freq_type: 'd',
+                            freq_value: 3,
+                            use: 'Y'
+                        },
+                        {
+                            chore_id: 'C003',
+                            chore_name: '화분물주기',
+                            choregroup_name: '거실',
+                            freq_type: 'w',
+                            freq_value: 1,
+                            use: 'N'
+                        }
+                    ];
                 
                 case 'oauthLogin':
                     // 개발 모드용 OAuth 로그인 응답
@@ -2773,6 +2807,15 @@
             document.getElementById('templateTaskList').innerHTML = '<p style="color: #666; text-align: center; margin: 20px 0;">주기를 선택해주세요</p>';
         }
 
+        // 기본 템플릿 설정 플로우 시작
+        async function openTemplateSetupFlow() {
+            // 새로운 할 일 추가 모달 닫기
+            closeModal('addTaskModal');
+            
+            // 아이템 선택 모달로 이동
+            await showItemSelectionModal();
+        }
+
         // openScheduleModal 함수 제거
 
         // 가족 찾기 모달 열기
@@ -3684,15 +3727,39 @@
             modal.style.display = 'flex';
             
             try {
-                // 서버에서 템플릿 집안일 목록 가져오기 (template=1)
                 choreSetupList.innerHTML = '<div style="text-align: center; padding: 40px; color: #94a3b8;"><div style="font-size: 2rem; margin-bottom: 10px;">🧹</div>집안일 목록을 불러오는 중...</div>';
                 
-                const response = await callGAS('getTemplateChores', {});
+                // 현재 가족의 chore_family 데이터가 있는지 확인 (모든 집안일, use='Y'와 'N' 포함)
+                let familyChores = null;
+                try {
+                    familyChores = await callGAS('getAllFamilyChoresForSetup', { 
+                        familyId: currentUser.familyGroupId 
+                    });
+                } catch (error) {
+                    console.log('기존 가족 집안일 없음, 템플릿으로 생성');
+                }
                 
-                if (response && response.length > 0) {
+                // 템플릿 집안일 목록 가져오기
+                const templateChores = await callGAS('getTemplateChores', {});
+                
+                // 가족 집안일이 있으면 해당 데이터 사용, 없으면 템플릿 사용
+                let choresToDisplay = [];
+                
+                if (familyChores && familyChores.length > 0) {
+                    // 기존 가족 집안일 데이터 사용 (템플릿 + 커스텀 모두 포함)
+                    choresToDisplay = familyChores;
+                } else if (templateChores && templateChores.length > 0) {
+                    // 템플릿 데이터로 초기화 (use: Y가 기본)
+                    choresToDisplay = templateChores.map(chore => ({
+                        ...chore,
+                        use: 'Y'
+                    }));
+                }
+                
+                if (choresToDisplay.length > 0) {
                     // choregroup_name별로 그룹화
                     const groupedChores = {};
-                    response.forEach(chore => {
+                    choresToDisplay.forEach(chore => {
                         const group = chore.choregroup_name || '기타';
                         if (!groupedChores[group]) {
                             groupedChores[group] = [];
@@ -3714,11 +3781,12 @@
                         
                         groupedChores[groupName].forEach(chore => {
                             const freqUnit = (chore.freq_type === 'd' || chore.freq_type === 'day') ? '일' : '주';
+                            const isActive = chore.use === 'Y' || chore.use === undefined;
                             html += `
                                 <div style="display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc;">
                                     <input type="checkbox" 
                                            data-chore-id="${chore.chore_id}" 
-                                           checked 
+                                           ${isActive ? 'checked' : ''}
                                            style="width: 20px; height: 20px; cursor: pointer;">
                                     <div style="flex: 1;">
                                         <div style="font-weight: 500; color: #1e293b;">${chore.chore_name}</div>
@@ -3796,9 +3864,15 @@
                             // 모달 닫기
                             document.getElementById('choreSetupModal').style.display = 'none';
                             
-                            // 메인 앱 표시
-                            showMainApp();
-                            alert(`🎉 환영합니다! ${currentUser.familyGroup}에 등록되었습니다.\n집안일: ${response.activeCount}개 활성화`);
+                            // 첫 가입인 경우 메인 앱 표시
+                            if (!document.getElementById('mainApp').style.display || document.getElementById('mainApp').style.display === 'none') {
+                                showMainApp();
+                                alert(`🎉 환영합니다! ${currentUser.familyGroup}에 등록되었습니다.\n집안일: ${response.activeCount}개 활성화`);
+                            } else {
+                                // 기존 사용자의 경우 내일 할일 페이지 새로고침
+                                alert(`✅ 집안일 설정이 저장되었습니다.\n활성화된 집안일: ${response.activeCount}개`);
+                                await loadTomorrowTasks();
+                            }
                         } else {
                             alert('오류: ' + (response.message || '집안일 설정에 실패했습니다.'));
                         }

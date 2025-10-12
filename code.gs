@@ -77,6 +77,8 @@ function doPost(e) {
                 return createResponse(joinFamily(data));
             case 'getFamilyChores':
                 return createResponse(getFamilyChores(data.familyId));
+            case 'getAllFamilyChoresForSetup':
+                return createResponse(getAllFamilyChoresForSetup(data.familyId));
             case 'getAllItems':
                 return createResponse(getAllItems());
             case 'setFamilyItems':
@@ -1459,6 +1461,47 @@ function getFamilyChores(familyId) {
         return chores;
     } catch (error) {
         Logger.log('가족 집안일 조회 오류: ' + error.toString());
+        throw error;
+    }
+}
+
+/**
+ * 가족의 모든 집안일 목록 조회 (설정용 - use='Y', 'N' 모두 포함)
+ */
+function getAllFamilyChoresForSetup(familyId) {
+    try {
+        const sheet = getFamilyChoreSheet(familyId);
+        const data = sheet.getDataRange().getValues();
+        const headers = data[0];
+        
+        const chores = [];
+        for (let i = 1; i < data.length; i++) {
+            const row = data[i];
+            // 모든 집안일 반환 (use 상태 무관)
+            if (row[0]) {  // chore_id가 있는 경우만
+                chores.push({
+                    chore_id: row[0],
+                    chore_name: row[1],
+                    choregroup_name: row[2],
+                    freq_type: row[3],
+                    freq_value: row[4],
+                    item_id: row[5],
+                    template: row[6],
+                    use: row[7],
+                    last_date: row[8] || null,
+                    due_date: row[9] || null,
+                    assignee: row[10] || null,
+                    status: row[11] || 'todo',
+                    color: row[12] || '',
+                    created_at: row[13] || new Date().toISOString(),
+                    updated_at: row[14] || new Date().toISOString()
+                });
+            }
+        }
+        
+        return chores;
+    } catch (error) {
+        Logger.log('가족 집안일 전체 조회 오류: ' + error.toString());
         throw error;
     }
 }
