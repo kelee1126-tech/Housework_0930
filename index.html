@@ -2019,6 +2019,9 @@
             choreDiv.className = 'task-item';
             choreDiv.style.cssText = 'cursor: pointer; transition: all 0.2s;';
             
+            // 할당 여부 확인
+            const isAssigned = chore.assignee === currentUser.idInFamily;
+            
             // 호버 효과
             choreDiv.onmouseenter = () => choreDiv.style.background = '#f8fafc';
             choreDiv.onmouseleave = () => choreDiv.style.background = 'white';
