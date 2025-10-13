@@ -1966,15 +1966,109 @@
                 todayTaskList.appendChild(taskElement);
             });
 
-            // 내일 할 일도 로드
-            loadTomorrowTasks();
+            // 내일 할 일 계획 로드 (오늘 할일 탭용)
+            loadTomorrowPlan();
+        }
+        
+        // 내일 할 일 계획 로드 (오늘 할일 탭의 "내일 할 일 계획" 섹션용)
+        async function loadTomorrowPlan() {
+            try {
+                const tomorrowPlanList = document.getElementById('tomorrowTaskList');
+                tomorrowPlanList.innerHTML = '<div class="loading"><div class="spinner"></div>내일 할 일을 불러오는 중...</div>';
+                
+                // 가족의 모든 집안일 조회
+                const familyChores = await callGAS('getFamilyChores', { 
+                    familyId: currentUser.familyGroupId 
+                });
+                
+                if (!familyChores || familyChores.length === 0) {
+                    tomorrowPlanList.innerHTML = '<div class="task-item"><div class="task-info">등록된 집안일이 없습니다.</div></div>';
+                    return;
+                }
+                
+                // 내일 날짜 계산
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                const tomorrowDateStr = tomorrow.toISOString().split('T')[0];
+                
+                // 내일 예정된 집안일만 필터링 (due_date가 내일이고, assignee가 있는 것)
+                const tomorrowAssigned = familyChores.filter(chore => {
+                    return chore.assignee && chore.due_date === tomorrowDateStr;
+                });
+                
+                tomorrowPlanList.innerHTML = '';
+                
+                if (tomorrowAssigned.length === 0) {
+                    tomorrowPlanList.innerHTML = '<div class="task-item"><div class="task-info">내일 계획된 일이 없습니다. "내일 할일" 탭에서 선택해보세요!</div></div>';
+                    return;
+                }
+                
+                // 내 것과 다른 가족 것 구분
+                const myTasks = tomorrowAssigned.filter(chore => chore.assignee === currentUser.idInFamily);
+                const othersTasks = tomorrowAssigned.filter(chore => chore.assignee !== currentUser.idInFamily);
+                
+                // 내 할일 먼저 표시
+                if (myTasks.length > 0) {
+                    const mySection = document.createElement('div');
+                    mySection.style.marginBottom = '15px';
+                    mySection.innerHTML = '<div style="font-weight: 600; color: #3b82f6; margin-bottom: 10px; padding-left: 5px; border-left: 3px solid #3b82f6;">✨ 내가 할 일</div>';
+                    tomorrowPlanList.appendChild(mySection);
+                    
+                    myTasks.forEach(chore => {
+                        const choreElement = createSimpleChoreElement(chore);
+                        tomorrowPlanList.appendChild(choreElement);
+                    });
+                }
+                
+                // 다른 가족 할일 표시
+                if (othersTasks.length > 0) {
+                    const othersSection = document.createElement('div');
+                    othersSection.style.marginTop = '20px';
+                    othersSection.innerHTML = '<div style="font-weight: 600; color: #10b981; margin-bottom: 10px; padding-left: 5px; border-left: 3px solid #10b981;">👥 다른 가족이 할 일</div>';
+                    tomorrowPlanList.appendChild(othersSection);
+                    
+                    othersTasks.forEach(chore => {
+                        const choreElement = createSimpleChoreElement(chore);
+                        tomorrowPlanList.appendChild(choreElement);
+                    });
+                }
+                
+            } catch (error) {
+                console.error('내일 할 일 계획 로드 오류:', error);
+                const tomorrowPlanList = document.getElementById('tomorrowTaskList');
+                tomorrowPlanList.innerHTML = '<div class="task-item"><div class="task-info" style="color: #dc2626;">❌ 할 일을 불러오는데 실패했습니다.</div></div>';
+            }
+        }
+        
+        // 간단한 집안일 카드 생성 (읽기 전용)
+        function createSimpleChoreElement(chore) {
+            const choreDiv = document.createElement('div');
+            choreDiv.className = 'task-item';
+            choreDiv.style.cssText = 'background: white; border-left: 4px solid #e2e8f0;';
+            
+            const choreColor = determineChoreColor(chore, currentUser.idInFamily);
+            const priorityColor = choreColor.color;
+            
+            choreDiv.innerHTML = `
+                <div style="width: 4px; height: 40px; border-radius: 2px; background-color: ${priorityColor}; margin-right: 12px;"></div>
+                <div class="task-info" style="flex: 1;">
+                    <div class="task-name" style="font-weight: 500; font-size: 1rem; margin-bottom: 6px;">
+                        ${chore.chore_name}
+                    </div>
+                    <div class="task-meta" style="font-size: 0.85rem; color: #64748b;">
+                        📅 ${chore.freq_type === 'd' || chore.freq_type === 'day' ? `${chore.freq_value}일마다` : `${chore.freq_value}주마다`}
+                    </div>
+                </div>
+            `;
+            
+            return choreDiv;
         }
 
-        // 내일 할 일 로드 (가족의 모든 집안일 표시 - use='Y'인 것)
+        // 내일 할 일 로드 (가족의 모든 집안일 표시 - use='Y'인 것 - "내일 할일" 탭용)
         async function loadTomorrowTasks() {
             try {
-                const tomorrowTaskList = document.getElementById('tomorrowTaskList');
-                tomorrowTaskList.innerHTML = '<div class="loading"><div class="spinner"></div>할 일을 불러오는 중...</div>';
+                const allTaskList = document.getElementById('allTaskList');
+                allTaskList.innerHTML = '<div class="loading"><div class="spinner"></div>할 일을 불러오는 중...</div>';
                 
                 // 가족의 모든 집안일 조회 (use='Y'인 것만)
                 const familyChores = await callGAS('getFamilyChores', { 
@@ -1983,10 +2077,10 @@
                 
                 console.log('가족 집안일 목록:', familyChores);
                 
-            tomorrowTaskList.innerHTML = '';
+            allTaskList.innerHTML = '';
 
                 if (!familyChores || familyChores.length === 0) {
-                    tomorrowTaskList.innerHTML = '<div class="task-item"><div class="task-info">등록된 집안일이 없습니다. "➕ 새로운 할 일 추가"를 눌러 추가하세요.</div></div>';
+                    allTaskList.innerHTML = '<div class="task-item"><div class="task-info">등록된 집안일이 없습니다. "➕ 새로운 할 일 추가"를 눌러 추가하세요.</div></div>';
                 return;
             }
 
@@ -2020,13 +2114,13 @@
                 // 정렬된 순서대로 렌더링 (그룹 분류 없이)
                 sortedChores.forEach(chore => {
                     const choreElement = createChoreElement(chore);
-                    tomorrowTaskList.appendChild(choreElement);
+                    allTaskList.appendChild(choreElement);
                 });
                 
             } catch (error) {
                 console.error('내일 할일 로드 오류:', error);
-                const tomorrowTaskList = document.getElementById('tomorrowTaskList');
-                tomorrowTaskList.innerHTML = '<div class="task-item"><div class="task-info" style="color: #dc2626;">❌ 할 일을 불러오는데 실패했습니다.</div></div>';
+                const allTaskList = document.getElementById('allTaskList');
+                allTaskList.innerHTML = '<div class="task-item"><div class="task-info" style="color: #dc2626;">❌ 할 일을 불러오는데 실패했습니다.</div></div>';
             }
         }
 
