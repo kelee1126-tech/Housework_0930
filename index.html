@@ -1184,6 +1184,23 @@
         </div>
     </div>
 
+    <!-- 가족 선택 모달 -->
+    <div id="familySelectModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3 class="modal-title">👨‍👩‍👧‍👦 가족 선택</h3>
+            </div>
+            <div style="padding: 1rem 0;">
+                <p style="color: #666; margin-bottom: 1.5rem;">
+                    여러 가족에 속해 계시네요! 사용할 가족을 선택해주세요.
+                </p>
+                <div id="familySelectList" style="display: grid; gap: 10px;">
+                    <!-- 가족 목록이 동적으로 생성됩니다 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- 로그인/회원가입 모달 -->
     <div id="authModal" class="modal auth-modal">
         <div class="modal-content">
@@ -3559,31 +3576,46 @@
                 });
 
                 if (response && response.id) {
-                    // 로컬 스토리지에 로그인 정보 저장
+                    // 사용자의 모든 가족 조회
+                    const allFamilies = await callGAS('getAllFamiliesByUserId', { userId: response.id });
+                    
+                    // 로컬 스토리지에 기본 로그인 정보 저장
                     currentUser = {
                         id: response.id,
-                        idInFamily: response.idInFamily || null,  // 가족 구성원 ID (예: F1728123456_1)
                         name: response.name,
-                        nickname: response.nickname || '나',
-                        familyGroup: response.familyGroup || null,
-                        familyGroupId: response.familyGroupId || null,
-                        shellCount: response.shellCount || 0,
                         email: response.email,
                         picture: response.picture,
-                        provider: userData.provider
+                        provider: userData.provider,
+                        allFamilies: allFamilies || []
                     };
                     
-                    localStorage.setItem('isLoggedIn', 'true');
-                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                    
-                    // 가족 그룹이 없으면 가족 등록 모달 표시
-                    if (!currentUser.familyGroupId) {
+                    // 가족이 없으면 가족 등록 모달 표시
+                    if (!allFamilies || allFamilies.length === 0) {
                         console.log('가족 그룹 없음 -> 가족 등록 모달 표시');
+                        localStorage.setItem('isLoggedIn', 'true');
+                        localStorage.setItem('currentUser', JSON.stringify(currentUser));
                         showFamilyRegistrationModal();
-                    } else {
-                        // 메인 앱으로 이동
+                    } 
+                    // 가족이 1개면 자동으로 해당 가족 선택
+                    else if (allFamilies.length === 1) {
+                        const family = allFamilies[0];
+                        currentUser.idInFamily = family.id_infamily;
+                        currentUser.nickname = family.nick_infamily;
+                        currentUser.familyGroup = family.family_name;
+                        currentUser.familyGroupId = family.family_id;
+                        currentUser.shellCount = 0;
+                        
+                        localStorage.setItem('isLoggedIn', 'true');
+                        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                        
                         showMainApp();
-                        alert(`환영합니다, ${currentUser.name}님!`);
+                        alert(`환영합니다, ${family.family_name}의 ${family.nick_infamily}님!`);
+                    }
+                    // 가족이 여러 개면 선택 모달 표시
+                    else {
+                        localStorage.setItem('isLoggedIn', 'true');
+                        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                        showFamilySelectModal(allFamilies);
                     }
                 } else {
                     alert('로그인 처리 중 오류가 발생했습니다: ' + response.message);
@@ -3592,6 +3624,74 @@
                 console.error('OAuth 로그인 오류:', error);
                 alert('로그인 중 오류가 발생했습니다.');
             }
+        }
+
+        // 가족 선택 모달 표시
+        function showFamilySelectModal(families) {
+            const modal = document.getElementById('familySelectModal');
+            const familyList = document.getElementById('familySelectList');
+            
+            familyList.innerHTML = '';
+            
+            families.forEach(family => {
+                const familyCard = document.createElement('div');
+                familyCard.style.cssText = `
+                    padding: 15px;
+                    border: 2px solid #e2e8f0;
+                    border-radius: 10px;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    background: white;
+                `;
+                
+                familyCard.innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <div>
+                            <div style="font-weight: bold; font-size: 1.1rem; color: #1e293b; margin-bottom: 5px;">
+                                🏠 ${family.family_name}
+                            </div>
+                            <div style="color: #64748b; font-size: 0.9rem;">
+                                닉네임: ${family.nick_infamily}
+                            </div>
+                        </div>
+                        <div style="color: #3b82f6; font-size: 1.5rem;">→</div>
+                    </div>
+                `;
+                
+                // 호버 효과
+                familyCard.onmouseenter = () => {
+                    familyCard.style.borderColor = '#3b82f6';
+                    familyCard.style.background = '#f0f9ff';
+                };
+                familyCard.onmouseleave = () => {
+                    familyCard.style.borderColor = '#e2e8f0';
+                    familyCard.style.background = 'white';
+                };
+                
+                // 클릭 이벤트
+                familyCard.onclick = () => {
+                    selectFamilyAndLogin(family);
+                };
+                
+                familyList.appendChild(familyCard);
+            });
+            
+            modal.style.display = 'flex';
+        }
+        
+        // 가족 선택 후 로그인 완료
+        function selectFamilyAndLogin(family) {
+            currentUser.idInFamily = family.id_infamily;
+            currentUser.nickname = family.nick_infamily;
+            currentUser.familyGroup = family.family_name;
+            currentUser.familyGroupId = family.family_id;
+            currentUser.shellCount = 0;
+            
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            
+            document.getElementById('familySelectModal').style.display = 'none';
+            showMainApp();
+            alert(`환영합니다, ${family.family_name}의 ${family.nick_infamily}님!`);
         }
 
         // 가족 등록 모달 표시
