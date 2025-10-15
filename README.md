@@ -88,22 +88,33 @@
 - `template=0`: 사용자가 직접 추가한 커스텀 집안일
 - 새 가족 생성 시 이 시트를 복사하여 `Chore_family_{family_id}` 시트 생성
 
-### 시트6: 가족별 집안일 주기 테이블	 (Chore_family)
+### 시트6: 가족별 집안일 (Chore_family_{family_id})
+각 가족별로 개별 시트가 생성됩니다 (예: Chore_family_F1234567890)
+
 | 필드명 | 타입 | 설명 | 예시 |
 |--------|------|------|------|
-| today | Date | 오늘날짜짜 | 2024-09-30 |
-| chore_id | String | 할 일 고유 ID | TASK001 |
-| created_at | DateTime | 시작일 | 2024-09-30T00:00:00Z |
-| freq_type| Date | 주기 (며칠/몇주) | day, week |
-| freq_value| Date | 주기값 (며칠/몇주) | 1-52 |
-| last_date | Date | 마지막 수행일 | 2024-09-29 |
-| due_date | Date | 예정일 | 2024-09-30 |
-| todo_date | Date | 지정일 | 2024-09-30 |
-| assignee | String | 지정한사람 | IDF001-01 |
-| status | String | 상태 | todo, ing, done |
-| color | String | 우선순위 색상 | red, blue, green, gray |
-| done_id | String | 완료한사람 | IDF001-01|
+| chore_id | String | 집안일 고유 ID | C1 |
+| chore_name | String | 집안일 이름 | 설거지 |
+| choregroup_name | String | 집안일 그룹 | 주방 |
+| freq_type | String | 주기 타입 | d(일), w(주) |
+| freq_value | Number | 주기 값 | 1, 2, 7 |
+| item_id | String | 연관 가전제품 | I1 |
+| template | Number | 템플릿 여부 | 0(커스텀), 1(템플릿) |
+| use | String | 사용 여부 | Y(사용), N(미사용) |
+| last_date | Date | 마지막 완료일 | 2024-09-28 |
+| due_date | Date | 예정일 (할당 시 설정) | 2024-09-30 |
+| assignee | String | 담당자 (id_infamily) | F1234_1 |
+| status | String | 상태 | 완료, 진행중 등 |
+| color | String | 우선순위 색상 | 빈 문자열 (프론트엔드에서 동적 결정) |
+| created_at | DateTime | 생성일시 | 2024-09-30T00:00:00Z |
 | updated_at | DateTime | 수정일시 | 2024-09-30T00:00:00Z |
+
+**주요 필드 설명:**
+- `use`: 가족이 해당 집안일을 사용할지 여부 (Y/N)
+- `last_date`: 집안일을 마지막으로 완료한 날짜
+- `due_date`: 사용자가 "내일 할일"에서 선택하면 설정되는 예정일
+- `assignee`: 집안일을 할당받은 가족 구성원의 id_infamily
+- `color`: 긴급도와 할당 상태에 따라 프론트엔드에서 동적으로 결정됨
 
 ### 시트7: 활동 로그 (Logs)
 | 필드명 | 타입 | 설명 | 예시 |

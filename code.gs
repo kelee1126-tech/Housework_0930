@@ -89,6 +89,8 @@ function doPost(e) {
                 return createResponse(assignChoreToMember(data));
             case 'unassignChoreFromMember':
                 return createResponse(unassignChoreFromMember(data));
+            case 'completeChore':
+                return createResponse(completeChore(data));
             case 'getTemplateChores':
                 return createResponse(getTemplateChores());
             case 'setupFamilyChores':
@@ -1890,6 +1892,61 @@ function unassignChoreFromMember(data) {
         return {
             success: false,
             message: '집안일 할당 취소 중 오류가 발생했습니다: ' + error.toString()
+        };
+    }
+}
+
+/**
+ * 집안일 완료 처리
+ * - last_date를 오늘로 업데이트
+ * - assignee, due_date, status 초기화
+ */
+function completeChore(data) {
+    try {
+        const familyId = data.familyId;
+        const choreId = data.choreId;
+        const completedDate = data.completedDate; // YYYY-MM-DD 형식
+        
+        // 가족별 집안일 시트 가져오기
+        const choreFamilySheet = getFamilyChoreSheet(familyId);
+        const choreData = choreFamilySheet.getDataRange().getValues();
+        
+        // 해당 chore_id 찾아서 last_date 업데이트 및 할당 정보 초기화
+        for (let i = 1; i < choreData.length; i++) {
+            if (choreData[i][0] === choreId) {
+                const row = i + 1;
+                
+                // 컬럼 인덱스: chore_id(0), chore_name(1), choregroup_name(2), freq_type(3), 
+                //             freq_value(4), item_id(5), template(6), use(7), 
+                //             last_date(8), due_date(9), assignee(10), status(11), color(12)
+                
+                choreFamilySheet.getRange(row, 9).setValue(completedDate);  // last_date = 완료 날짜
+                choreFamilySheet.getRange(row, 10).setValue('');            // due_date 초기화
+                choreFamilySheet.getRange(row, 11).setValue('');            // assignee 초기화
+                choreFamilySheet.getRange(row, 12).setValue('완료');        // status = '완료'
+                choreFamilySheet.getRange(row, 15).setValue(new Date().toISOString()); // updated_at
+                
+                Logger.log(`집안일 완료: ${choreId}, 완료일: ${completedDate}`);
+                
+                return {
+                    success: true,
+                    message: '집안일이 완료되었습니다.',
+                    choreId: choreId,
+                    completedDate: completedDate
+                };
+            }
+        }
+        
+        return {
+            success: false,
+            message: '해당 집안일을 찾을 수 없습니다.'
+        };
+        
+    } catch (error) {
+        Logger.log('집안일 완료 처리 오류: ' + error.toString());
+        return {
+            success: false,
+            message: '집안일 완료 처리 중 오류가 발생했습니다: ' + error.toString()
         };
     }
 }
