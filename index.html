@@ -2024,6 +2024,9 @@
                 
                 // 오늘 날짜
                 const today = new Date().toISOString().split('T')[0];
+                console.log('📅 오늘 날짜:', today);
+                console.log('👤 나의 ID:', currentUser.idInFamily);
+                console.log('📋 전체 가족 집안일:', familyChores.length, '개');
                 
                 // assignee가 나인 집안일 필터링 (due_date가 오늘이거나 과거인 것)
                 const myTasks = familyChores.filter(chore => {
@@ -2034,11 +2037,14 @@
                     
                     // due_date가 오늘이거나 이전인 것
                     if (chore.due_date && chore.due_date <= today) {
+                        console.log('✅ 오늘 할일 발견:', chore.chore_name, '| 예정일:', chore.due_date);
                         return true;
                     }
                     
                     return false;
                 });
+                
+                console.log('✨ 나의 오늘 할일:', myTasks.length, '개');
                 
                 todayTaskList.innerHTML = '';
 
@@ -2393,6 +2399,7 @@
                     button.setAttribute('data-assigned', 'true');
                 }
                 
+                const tomorrowDate = getTomorrowDate();
                 const taskData = {
                     chore_id: chore.chore_id,
                     chore_name: chore.chore_name,
@@ -2404,8 +2411,10 @@
                     freq_value: chore.freq_value,
                     status: 'todo',
                     color: chore.color || 'blue',
-                    due_date: getTomorrowDate()
+                    due_date: tomorrowDate
                 };
+                
+                console.log('📝 내일 할일 등록:', chore.chore_name, '| 예정일:', tomorrowDate, '| 담당자:', currentUser.idInFamily);
                 
                 const response = await callGAS('assignChoreToMember', taskData);
                 
