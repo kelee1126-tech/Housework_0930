@@ -40,11 +40,15 @@
         .header {
             background: linear-gradient(135deg, rgb(95, 240, 167) 0%, rgb(82, 135, 250) 100%);
             color: white;
-            padding: 20px;
+            padding: 30px 20px 20px 20px;
             text-align: center;
             position: sticky;
             top: 0;
             z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
         }
 
         .header h1 {
@@ -715,11 +719,11 @@
         <div id="mainApp" class="main-app" style="display: none;">
         <!-- 헤더 -->
         <div class="header">
-            <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%;">
                 <img src="images/logo.png.jpg" alt="집안일매니저" style="width: 35px; height: 35px; border-radius: 6px;">
                 <h1 style="margin: 0;">집안일매니저</h1>
             </div>
-            <div class="user-info">
+            <div class="user-info" style="width: 100%; display: flex; justify-content: center; align-items: center;">
                 <span id="familyGroup">[가족그룹명]</span>의 <span id="userNickname">[닉네임]</span>
                     <button class="btn btn-small" onclick="logout()" style="margin-left: 10px;">로그아웃</button>
             </div>
