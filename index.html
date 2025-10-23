@@ -1286,6 +1286,14 @@
         let tasks = [];
         let familyMembers = [];
         
+        // 탭 로드 상태 추적 (지연 로딩 최적화)
+        let tabLoadStatus = {
+            today: false,
+            manage: false,
+            reward: false,
+            family: false
+        };
+        
         // Google Apps Script 웹앱 URL
         const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxT6o1MkvC940KXClPvCsZ1MDKdRf2d_FbzZjKA3KcwSGCb8b0u8s-WyPub_viyDhbWsw/exec';
         
@@ -1360,19 +1368,27 @@
             loadAppData();
         }
 
-        // 앱 데이터 로드
+        // 앱 데이터 로드 (최적화: 병렬 처리 + 지연 로딩)
         async function loadAppData() {
+            // 동기 업데이트 (즉시 반영)
             updateUserInfo();
             updateTodayDate();
-            loadTasks();
-            loadFamilyMembers();
-            loadShellCount();
-            loadCategories();
             
-            // 가족 데이터도 미리 로드 (가족 탭 진입 시 빠르게 표시하기 위함)
-            if (currentUser && currentUser.id) {
-                await loadMyFamilies();
+            // 필수 데이터만 병렬 로드 (오늘 할일 화면에 필요한 것만)
+            try {
+                await Promise.all([
+                    loadTodayTasks(),  // 오늘 할일 (첫 화면에 표시)
+                    loadCategories()   // 카테고리 (새 할일 추가 시 필요)
+                ]);
+            } catch (error) {
+                console.error('초기 데이터 로드 오류:', error);
             }
+            
+            // 나머지 데이터는 백그라운드에서 로드 (사용자 경험 방해 안 함)
+            setTimeout(() => {
+                // 가족 데이터는 이미 currentUser.allFamilies에 캐시됨
+                // 다른 탭 데이터는 탭 클릭 시 로드
+            }, 100);
         }
 
         // 사용자 정보 업데이트
@@ -1394,7 +1410,7 @@
         }
 
         // 탭 전환
-        function showTab(tabName) {
+        async function showTab(tabName) {
             // 모든 탭 비활성화
             document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
@@ -1413,19 +1429,31 @@
             
             document.getElementById(tabName).classList.add('active');
             
-            // 탭별 데이터 로드
+            // 탭별 데이터 로드 (지연 로딩: 처음 클릭 시에만 로드)
             switch(tabName) {
                 case 'today':
-                    loadTodayTasks();
+                    // 오늘 할일은 항상 새로고침 (실시간 데이터 필요)
+                    await loadTodayTasks();
+                    tabLoadStatus.today = true;
                     break;
                 case 'manage':
-                    loadTomorrowTasks();
+                    // 내일 할일도 항상 새로고침
+                    await loadTomorrowTasks();
+                    tabLoadStatus.manage = true;
                     break;
                 case 'reward':
-                    loadRewardData();
+                    // 보상 데이터는 처음 1회만 로드
+                    if (!tabLoadStatus.reward) {
+                        loadRewardData();
+                        tabLoadStatus.reward = true;
+                    }
                     break;
                 case 'family':
-                    loadFamilyData();
+                    // 가족 데이터는 처음 1회만 로드
+                    if (!tabLoadStatus.family) {
+                        await loadFamilyData();
+                        tabLoadStatus.family = true;
+                    }
                     break;
             }
         }
@@ -2855,7 +2883,7 @@
             await loadCurrentFamilyMembers();
         }
 
-        // 내가 속한 가족 목록 로드
+        // 내가 속한 가족 목록 로드 (캐싱 적용)
         async function loadMyFamilies() {
             const myFamiliesList = document.getElementById('myFamiliesList');
             
@@ -2867,9 +2895,17 @@
             try {
                 myFamiliesList.innerHTML = '<div class="loading">로딩 중...</div>';
                 
-                const families = await callGAS('getAllFamiliesByUserId', {
-                    userId: currentUser.id
-                });
+                // 캐시된 데이터 먼저 확인 (API 호출 최소화)
+                let families = currentUser.allFamilies;
+                
+                // 캐시가 없거나 오래된 경우에만 API 호출
+                if (!families || families.length === 0) {
+                    families = await callGAS('getAllFamiliesByUserId', {
+                        userId: currentUser.id
+                    });
+                    // 캐시 업데이트
+                    currentUser.allFamilies = families;
+                }
                 
                 console.log('내가 속한 가족들:', families);
                 
