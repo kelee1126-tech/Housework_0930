@@ -1906,6 +1906,7 @@ function completeChore(data) {
         const familyId = data.familyId;
         const choreId = data.choreId;
         const completedDate = data.completedDate; // YYYY-MM-DD 형식
+        const userId = data.userId; // 완료한 사용자 ID (추가)
         
         // 가족별 집안일 시트 가져오기
         const choreFamilySheet = getFamilyChoreSheet(familyId);
@@ -1915,6 +1916,7 @@ function completeChore(data) {
         for (let i = 1; i < choreData.length; i++) {
             if (choreData[i][0] === choreId) {
                 const row = i + 1;
+                const assignee = choreData[i][10]; // 기존 assignee 저장 (조개 지급용)
                 
                 // 컬럼 인덱스: chore_id(0), chore_name(1), choregroup_name(2), freq_type(3), 
                 //             freq_value(4), item_id(5), template(6), use(7), 
@@ -1926,13 +1928,20 @@ function completeChore(data) {
                 choreFamilySheet.getRange(row, 12).setValue('완료');        // status = '완료'
                 choreFamilySheet.getRange(row, 15).setValue(new Date().toISOString()); // updated_at
                 
-                Logger.log(`집안일 완료: ${choreId}, 완료일: ${completedDate}`);
+                Logger.log(`집안일 완료: ${choreId}, 완료일: ${completedDate}, 완료자: ${userId}`);
+                
+                // 조개 보상 지급 (집안일 완료 시 조개 1개 증가)
+                if (userId) {
+                    updateUserShellCount(userId, 1);
+                    Logger.log(`조개 보상 지급: ${userId}에게 조개 +1`);
+                }
                 
                 return {
                     success: true,
-                    message: '집안일이 완료되었습니다.',
+                    message: '집안일이 완료되었습니다. 조개 +1 🐚',
                     choreId: choreId,
-                    completedDate: completedDate
+                    completedDate: completedDate,
+                    shellReward: 1
                 };
             }
         }

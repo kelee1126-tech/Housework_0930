@@ -1938,11 +1938,15 @@
                         localStorage.setItem('devModeAssignedChores', JSON.stringify(devModeAssignedChores));
                     }
                     
+                    // 조개 개수 증가 (개발 모드)
+                    currentUser.shellCount = (currentUser.shellCount || 0) + 1;
+                    
                     return {
                         success: true,
-                        message: '집안일이 완료되었습니다.',
+                        message: '집안일이 완료되었습니다. 조개 +1 🐚',
                         choreId: data.choreId,
-                        completedDate: data.completedDate
+                        completedDate: data.completedDate,
+                        shellReward: 1
                     };
                 
                 case 'setFamilyItems':
@@ -2199,17 +2203,25 @@
                 
                 const today = new Date().toISOString().split('T')[0];
                 
-                // 완료 API 호출 (last_date를 오늘로 업데이트, assignee와 due_date 초기화)
+                // 완료 API 호출 (last_date를 오늘로 업데이트, assignee와 due_date 초기화, 조개 보상)
                 const response = await callGAS('completeChore', {
                     familyId: currentUser.familyGroupId,
                     choreId: choreId,
-                    completedDate: today
+                    completedDate: today,
+                    userId: currentUser.id  // 조개 보상을 위한 사용자 ID
                 });
                 
                 if (response && response.success) {
-                    // 성공 시 오늘 할일과 내일 할일 모두 새로고침
+                    // 조개 개수 업데이트 (UI 반영)
+                    if (response.shellReward) {
+                        currentUser.shellCount = (currentUser.shellCount || 0) + response.shellReward;
+                        updateShellCount();
+                        console.log('🐚 조개 보상:', response.shellReward, '개 | 현재 조개:', currentUser.shellCount);
+                    }
+                    
+                    // 성공 시 오늘 할일 새로고침
                     await loadTodayTasks();
-                    showToast('✅ 완료했습니다!');
+                    showToast(response.message || '✅ 완료했습니다! 조개 +1 🐚');
                 } else {
                     alert('완료 처리에 실패했습니다: ' + (response?.message || '알 수 없는 오류'));
                 }
