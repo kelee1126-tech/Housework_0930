@@ -1856,16 +1856,23 @@ function assignChoreToMember(data) {
                 //             freq_value(4), item_id(5), template(6), use(7), 
                 //             last_date(8), due_date(9), assignee(10), status(11), color(12)
                 
-                choreFamilySheet.getRange(row, 10).setValue(dueDate || '');      // due_date
-                choreFamilySheet.getRange(row, 11).setValue(assignee || '');     // assignee
-                choreFamilySheet.getRange(row, 12).setValue('todo');             // status
+                choreFamilySheet.getRange(row, 10).setValue(dueDate || '');      // due_date (인덱스 9)
+                choreFamilySheet.getRange(row, 11).setValue(assignee || '');     // assignee (인덱스 10)
+                choreFamilySheet.getRange(row, 12).setValue('todo');             // status (인덱스 11)
                 choreFamilySheet.getRange(row, 15).setValue(new Date().toISOString()); // updated_at
                 
-                Logger.log(`집안일 할당: ${choreId} -> ${assignee}`);
+                Logger.log(`집안일 할당: ${choreId} -> ${assignee}, 예정일: ${dueDate}`);
+                Logger.log(`업데이트된 컬럼: due_date(10), assignee(11), status(12)`);
                 
                 return {
                     success: true,
-                    message: '집안일이 할당되었습니다.'
+                    message: '집안일이 할당되었습니다.',
+                    data: {
+                        chore_id: choreId,
+                        assignee: assignee,
+                        due_date: dueDate,
+                        status: 'todo'
+                    }
                 };
             }
         }
