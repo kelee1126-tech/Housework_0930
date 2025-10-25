@@ -2105,8 +2105,21 @@
                 // 내일 예정된 집안일만 필터링 (due_date가 내일이고, assignee가 있는 것)
                 const tomorrowAssigned = familyChores.filter(chore => {
                     const hasAssignee = chore.assignee && chore.assignee === currentUser.idInFamily;
-                    const isTomorrow = chore.due_date === tomorrowDateStr;
-                    console.log(`🔍 집안일: ${chore.chore_name} | assignee: ${chore.assignee} | due_date: ${chore.due_date} | 내일?: ${isTomorrow} | 내것?: ${hasAssignee}`);
+                    
+                    // 날짜 비교 시 시간 정보 제거하고 날짜만 비교
+                    let choreDateStr = '';
+                    if (chore.due_date) {
+                        if (chore.due_date.includes('T')) {
+                            // ISO 형식인 경우 날짜 부분만 추출
+                            choreDateStr = chore.due_date.split('T')[0];
+                        } else {
+                            // 이미 날짜 형식인 경우
+                            choreDateStr = chore.due_date;
+                        }
+                    }
+                    
+                    const isTomorrow = choreDateStr === tomorrowDateStr;
+                    console.log(`🔍 집안일: ${chore.chore_name} | assignee: ${chore.assignee} | due_date: ${chore.due_date} | 추출된날짜: ${choreDateStr} | 내일?: ${isTomorrow} | 내것?: ${hasAssignee}`);
                     return hasAssignee && isTomorrow;
             });
             
