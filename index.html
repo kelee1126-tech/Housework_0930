@@ -1286,6 +1286,7 @@
         
         // 개발 모드용 임시 데이터 저장소
         let devModeAssignedChores = [];
+        let tomorrowAssignedChores = []; // 내일 할일 계획 목록
 
         let tasks = [];
         let familyMembers = [];
@@ -2078,98 +2079,39 @@
         }
         
         // 내일 할 일 계획 로드 (오늘 할일 탭의 "내일 할 일 계획" 섹션용)
-        async function loadTomorrowPlan() {
+        // 내일 할 일 계획 로드 (프론트엔드 배열에서 직접 조회)
+        function loadTomorrowPlan() {
             try {
                 const tomorrowPlanList = document.getElementById('tomorrowTaskList');
                 tomorrowPlanList.innerHTML = '<div class="loading"><div class="spinner"></div>내일 할 일을 불러오는 중...</div>';
                 
-                // 가족의 모든 집안일 조회
-                const familyChores = await callGAS('getFamilyChores', { 
-                    familyId: currentUser.familyGroupId 
-                });
+                console.log('📅 내일 할일 계획 로드:', tomorrowAssignedChores);
                 
-                if (!familyChores || familyChores.length === 0) {
-                    tomorrowPlanList.innerHTML = '<div class="task-item"><div class="task-info">등록된 집안일이 없습니다.</div></div>';
+                // 내일 할일 계획 목록이 비어있으면 안내 메시지 표시
+                if (tomorrowAssignedChores.length === 0) {
+                    tomorrowPlanList.innerHTML = '<div class="task-item"><div class="task-info">내일 계획된 일이 없습니다. "내일 할일" 탭에서 선택해보세요!</div></div>';
                     return;
                 }
                 
-                // 내일 날짜 계산
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-                const tomorrowDateStr = tomorrow.toISOString().split('T')[0];
-                
-                console.log('📅 내일 날짜:', tomorrowDateStr);
-                console.log('👤 나의 ID:', currentUser.idInFamily);
-                console.log('📋 전체 가족 집안일:', familyChores.length, '개');
-                console.log('🔍 날짜 계산 확인:');
-                console.log('  - 현재 시간:', new Date().toISOString());
-                console.log('  - 내일 시간:', tomorrow.toISOString());
-                console.log('  - 내일 날짜 문자열:', tomorrowDateStr);
-
-                // 내일 예정된 집안일만 필터링 (due_date가 내일이고, assignee가 있는 것)
-                const tomorrowAssigned = familyChores.filter(chore => {
-                    const hasAssignee = chore.assignee && chore.assignee === currentUser.idInFamily;
-                    
-                    // 날짜 비교 시 시간 정보 제거하고 날짜만 비교
-                    let choreDateStr = '';
-                    if (chore.due_date) {
-                        if (chore.due_date.includes('T')) {
-                            // ISO 형식인 경우 날짜 부분만 추출
-                            choreDateStr = chore.due_date.split('T')[0];
-                        } else {
-                            // 이미 날짜 형식인 경우
-                            choreDateStr = chore.due_date;
-                        }
-                    }
-                    
-                    const isTomorrow = choreDateStr === tomorrowDateStr;
-                    console.log(`🔍 집안일: ${chore.chore_name} | assignee: ${chore.assignee} | due_date: ${chore.due_date} | 추출된날짜: ${choreDateStr} | 내일?: ${isTomorrow} | 내것?: ${hasAssignee}`);
-                    return hasAssignee && isTomorrow;
-            });
-            
-            console.log('✨ 내일 할일 계획:', tomorrowAssigned.length, '개');
-
                 tomorrowPlanList.innerHTML = '';
-
-                if (tomorrowAssigned.length === 0) {
-                    tomorrowPlanList.innerHTML = '<div class="task-item"><div class="task-info">내일 계획된 일이 없습니다. "내일 할일" 탭에서 선택해보세요!</div></div>';
-                return;
-            }
-
-                // 내 것과 다른 가족 것 구분
-                const myTasks = tomorrowAssigned.filter(chore => chore.assignee === currentUser.idInFamily);
-                const othersTasks = tomorrowAssigned.filter(chore => chore.assignee !== currentUser.idInFamily);
                 
-                // 내 할일 먼저 표시
-                if (myTasks.length > 0) {
-                    const mySection = document.createElement('div');
-                    mySection.style.marginBottom = '15px';
-                    mySection.innerHTML = '<div style="font-weight: 600; color: #3b82f6; margin-bottom: 10px; padding-left: 5px; border-left: 3px solid #3b82f6;">✨ 내가 할 일</div>';
-                    tomorrowPlanList.appendChild(mySection);
-                    
-                    myTasks.forEach(chore => {
-                        const choreElement = createSimpleChoreElement(chore);
-                        tomorrowPlanList.appendChild(choreElement);
-                    });
-                }
+                // 내일 할일 계획 목록 표시
+                const mySection = document.createElement('div');
+                mySection.style.marginBottom = '15px';
+                mySection.innerHTML = '<div style="font-weight: 600; color: #3b82f6; margin-bottom: 10px; padding-left: 5px; border-left: 3px solid #3b82f6;">✨ 내가 할 일</div>';
+                tomorrowPlanList.appendChild(mySection);
                 
-                // 다른 가족 할일 표시
-                if (othersTasks.length > 0) {
-                    const othersSection = document.createElement('div');
-                    othersSection.style.marginTop = '20px';
-                    othersSection.innerHTML = '<div style="font-weight: 600; color: #10b981; margin-bottom: 10px; padding-left: 5px; border-left: 3px solid #10b981;">👥 다른 가족이 할 일</div>';
-                    tomorrowPlanList.appendChild(othersSection);
-                    
-                    othersTasks.forEach(chore => {
-                        const choreElement = createSimpleChoreElement(chore);
-                        tomorrowPlanList.appendChild(choreElement);
-                    });
-                }
+                tomorrowAssignedChores.forEach(chore => {
+                    const choreElement = createSimpleChoreElement(chore);
+                    tomorrowPlanList.appendChild(choreElement);
+                });
+                
+                console.log('✨ 내일 할일 계획 표시 완료:', tomorrowAssignedChores.length, '개');
                 
             } catch (error) {
                 console.error('내일 할 일 계획 로드 오류:', error);
                 const tomorrowPlanList = document.getElementById('tomorrowTaskList');
-                tomorrowPlanList.innerHTML = '<div class="task-item"><div class="task-info" style="color: #dc2626;">❌ 할 일을 불러오는데 실패했습니다.</div></div>';
+                tomorrowPlanList.innerHTML = '<div class="task-item"><div class="task-info" style="color: #dc2626;">❌ 내일 할 일을 불러오는데 실패했습니다.</div></div>';
             }
         }
         
@@ -2461,6 +2403,24 @@
                 if (response && response.success) {
                     // 팝업 없이 조용히 성공
                     console.log('✅ 할당 완료:', chore.chore_name);
+                    
+                    // 내일 할일 계획 목록에 추가
+                    const assignedChore = {
+                        chore_id: chore.chore_id,
+                        chore_name: chore.chore_name,
+                        choregroup_name: chore.choregroup_name,
+                        assignee: currentUser.idInFamily,
+                        due_date: tomorrowDate,
+                        status: 'todo',
+                        color: chore.color || 'blue'
+                    };
+                    
+                    // 중복 제거 후 추가
+                    tomorrowAssignedChores = tomorrowAssignedChores.filter(c => c.chore_id !== chore.chore_id);
+                    tomorrowAssignedChores.push(assignedChore);
+                    
+                    console.log('📅 내일 할일 계획 목록 업데이트:', tomorrowAssignedChores);
+                    
                     await loadTodayTasks();  // 오늘 할일 새로고침
                 } else {
                     // 실패 시에만 알림
@@ -2509,6 +2469,11 @@
                 if (response && response.success) {
                     // 팝업 없이 조용히 성공
                     console.log('✅ 할당 취소 완료:', chore.chore_name);
+                    
+                    // 내일 할일 계획 목록에서 제거
+                    tomorrowAssignedChores = tomorrowAssignedChores.filter(c => c.chore_id !== chore.chore_id);
+                    console.log('📅 내일 할일 계획 목록에서 제거:', tomorrowAssignedChores);
+                    
                     await loadTodayTasks();  // 오늘 할일 새로고침
                 } else {
                     // 실패 시에만 알림
