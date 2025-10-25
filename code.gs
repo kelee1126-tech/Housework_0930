@@ -1470,8 +1470,10 @@ function getFamilyChoreSheet(familyId) {
 function getFamilyChores(familyId) {
     try {
         const sheet = getFamilyChoreSheet(familyId);
+        Logger.log(`조회할 시트: ${sheet.getName()}`);
         const data = sheet.getDataRange().getValues();
         const headers = data[0];
+        Logger.log(`시트 헤더: ${headers.join(', ')}`);
         
         const chores = [];
         Logger.log(`가족 집안일 조회: ${familyId}, 데이터 행 수: ${data.length}`);

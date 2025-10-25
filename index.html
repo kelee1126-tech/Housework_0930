@@ -1286,6 +1286,7 @@
         
         // 개발 모드용 임시 데이터 저장소
         let devModeAssignedChores = [];
+        let tomorrowAssignedChores = []; // 내일 할일 계획 목록
 
         let tasks = [];
         let familyMembers = [];
@@ -2281,7 +2282,8 @@
 
                 // 예정일 기준으로 정렬 (choregroup 무시, 예정일이 가까운 순서)
                 const sortedChores = familyChores.map(chore => {
-                    const dueDate = calculateDueDate(chore);
+                    const dueDate = chore.due_date;
+                    // const dueDate = calculateDueDate(chore);
                     const choreColor = determineChoreColor(chore, currentUser.idInFamily);
                     
                     // 색상 우선순위 지정
@@ -2439,6 +2441,24 @@
                 if (response && response.success) {
                     // 팝업 없이 조용히 성공
                     console.log('✅ 할당 완료:', chore.chore_name);
+                    
+                    // 내일 할일 계획 목록에 추가
+                    const assignedChore = {
+                        chore_id: chore.chore_id,
+                        chore_name: chore.chore_name,
+                        choregroup_name: chore.choregroup_name,
+                        assignee: currentUser.idInFamily,
+                        due_date: tomorrowDate,
+                        status: 'todo',
+                        color: chore.color || 'blue'
+                    };
+                    
+                    // 중복 제거 후 추가
+                    tomorrowAssignedChores = tomorrowAssignedChores.filter(c => c.chore_id !== chore.chore_id);
+                    tomorrowAssignedChores.push(assignedChore);
+                    
+                    console.log('📅 내일 할일 계획 목록 업데이트:', tomorrowAssignedChores);
+                    
                     await loadTodayTasks();  // 오늘 할일 새로고침
                 } else {
                     // 실패 시에만 알림
