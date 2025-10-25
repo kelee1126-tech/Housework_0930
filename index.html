@@ -2097,11 +2097,20 @@
             const tomorrow = new Date();
             tomorrow.setDate(tomorrow.getDate() + 1);
                 const tomorrowDateStr = tomorrow.toISOString().split('T')[0];
+                
+                console.log('📅 내일 날짜:', tomorrowDateStr);
+                console.log('👤 나의 ID:', currentUser.idInFamily);
+                console.log('📋 전체 가족 집안일:', familyChores.length, '개');
 
                 // 내일 예정된 집안일만 필터링 (due_date가 내일이고, assignee가 있는 것)
                 const tomorrowAssigned = familyChores.filter(chore => {
-                    return chore.assignee && chore.due_date === tomorrowDateStr;
+                    const hasAssignee = chore.assignee && chore.assignee === currentUser.idInFamily;
+                    const isTomorrow = chore.due_date === tomorrowDateStr;
+                    console.log(`🔍 집안일: ${chore.chore_name} | assignee: ${chore.assignee} | due_date: ${chore.due_date} | 내일?: ${isTomorrow} | 내것?: ${hasAssignee}`);
+                    return hasAssignee && isTomorrow;
             });
+            
+            console.log('✨ 내일 할일 계획:', tomorrowAssigned.length, '개');
 
                 tomorrowPlanList.innerHTML = '';
 
@@ -2427,8 +2436,10 @@
                 };
                 
                 console.log('📝 내일 할일 등록:', chore.chore_name, '| 예정일:', tomorrowDate, '| 담당자:', currentUser.idInFamily);
+                console.log('📋 전송 데이터:', taskData);
                 
                 const response = await callGAS('assignChoreToMember', taskData);
+                console.log('🔍 백엔드 응답:', response);
                 
                 if (response && response.success) {
                     // 팝업 없이 조용히 성공
