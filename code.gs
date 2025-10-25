@@ -367,40 +367,60 @@ function getChoreInfo(choreId) {
  * 할 일 관련 함수들
  */
 
-// 할 일 목록 조회 (Chore_family 시트에서 조회)
+// 할 일 목록 조회 (가족별 Chore_family 시트에서 조회)
 function getTasks(userId) {
-    const sheet = getSheet(SHEET_NAMES.CHORE_FAMILY);
-    const data = sheet.getDataRange().getValues();
     const tasks = [];
     
     // 사용자의 가족 구성원 ID 조회
     const familyMember = getFamilyMemberByUserId(userId);
-    if (!familyMember) return tasks;
-    
-    for (let i = 1; i < data.length; i++) {
-        if (data[i][8] === familyMember.id_infamily) { // assignee로 필터링
-            // Chore 시트에서 할 일 상세 정보 조회
-            const choreInfo = getChoreInfo(data[i][1]); // chore_id
-            if (choreInfo) {
-                tasks.push({
-                    task_id: data[i][1], // chore_id
-                    task_name: choreInfo.chore_name,
-                    category: choreInfo.choregroup_name,
-                    cycle: choreInfo.cycle,
-                    assignee_id: data[i][8], // assignee
-                    last_date: data[i][5], // last_date
-                    next_date: data[i][6], // due_date
-                    status: data[i][9], // status
-                    priority: data[i][10], // color
-                    family_id: familyMember.family_id,
-                    created_at: data[i][2], // created_at
-                    updated_at: data[i][12] // updated_at
-                });
-            }
-        }
+    if (!familyMember) {
+        Logger.log('사용자의 가족 구성원 정보를 찾을 수 없습니다: ' + userId);
+        return tasks;
     }
     
-    return tasks;
+    // family_id가 유효한지 확인
+    if (!familyMember.family_id) {
+        Logger.log('가족 ID가 없습니다: ' + JSON.stringify(familyMember));
+        return tasks;
+    }
+    
+    try {
+        // 올바른 가족별 시트 사용
+        const sheet = getFamilyChoreSheet(familyMember.family_id);
+        const data = sheet.getDataRange().getValues();
+        
+        Logger.log(`가족별 집안일 시트 조회: ${familyMember.family_id}, 데이터 행 수: ${data.length}`);
+        
+        for (let i = 1; i < data.length; i++) {
+            if (data[i][10] === familyMember.id_infamily) { // assignee로 필터링 (인덱스 10)
+                // Chore 시트에서 할 일 상세 정보 조회
+                const choreInfo = getChoreInfo(data[i][0]); // chore_id (인덱스 0)
+                if (choreInfo) {
+                    tasks.push({
+                        task_id: data[i][0], // chore_id
+                        task_name: choreInfo.chore_name,
+                        category: choreInfo.choregroup_name,
+                        cycle: choreInfo.cycle,
+                        assignee_id: data[i][10], // assignee
+                        last_date: data[i][8], // last_date (인덱스 8)
+                        next_date: data[i][9], // due_date (인덱스 9)
+                        status: data[i][11], // status (인덱스 11)
+                        priority: data[i][12], // color (인덱스 12)
+                        family_id: familyMember.family_id,
+                        created_at: data[i][13], // created_at (인덱스 13)
+                        updated_at: data[i][14] // updated_at (인덱스 14)
+                    });
+                }
+            }
+        }
+        
+        Logger.log(`조회된 할 일 개수: ${tasks.length}`);
+        return tasks;
+        
+    } catch (error) {
+        Logger.log('할 일 조회 오류: ' + error.toString());
+        return tasks;
+    }
 }
 
 // 할 일 추가 (Chore와 Chore_family 시트에 추가)
@@ -1346,11 +1366,19 @@ function createFamily(data) {
  */
 function createFamilyChoreSheet(familyId) {
     try {
+        // familyId 유효성 검사
+        if (!familyId || familyId === 'undefined' || familyId === 'null') {
+            Logger.log('유효하지 않은 familyId로 시트 생성 시도: ' + familyId);
+            throw new Error('유효하지 않은 가족 ID로 시트를 생성할 수 없습니다: ' + familyId);
+        }
+        
         const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
         const choreMainSheet = getSheet(SHEET_NAMES.CHORE_MAIN);
         
         // 새 시트 이름
         const newSheetName = SHEET_NAMES.CHORE_FAMILY + '_' + familyId;
+        
+        Logger.log('가족별 집안일 시트 생성 시작: ' + newSheetName);
         
         // 이미 존재하는지 확인
         let familyChoreSheet = spreadsheet.getSheetByName(newSheetName);
@@ -1410,12 +1438,22 @@ function createFamilyChoreSheet(familyId) {
  */
 function getFamilyChoreSheet(familyId) {
     try {
+        // familyId 유효성 검사
+        if (!familyId || familyId === 'undefined' || familyId === 'null') {
+            Logger.log('유효하지 않은 familyId: ' + familyId);
+            throw new Error('유효하지 않은 가족 ID입니다: ' + familyId);
+        }
+        
         const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
         const sheetName = SHEET_NAMES.CHORE_FAMILY + '_' + familyId;
+        
+        Logger.log('가족별 집안일 시트 조회: ' + sheetName);
+        
         let sheet = spreadsheet.getSheetByName(sheetName);
         
         // 시트가 없으면 생성
         if (!sheet) {
+            Logger.log('가족별 집안일 시트가 없어서 생성합니다: ' + sheetName);
             sheet = createFamilyChoreSheet(familyId);
         }
         
