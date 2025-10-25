@@ -2101,6 +2101,10 @@
                 console.log('📅 내일 날짜:', tomorrowDateStr);
                 console.log('👤 나의 ID:', currentUser.idInFamily);
                 console.log('📋 전체 가족 집안일:', familyChores.length, '개');
+                console.log('🔍 날짜 계산 확인:');
+                console.log('  - 현재 시간:', new Date().toISOString());
+                console.log('  - 내일 시간:', tomorrow.toISOString());
+                console.log('  - 내일 날짜 문자열:', tomorrowDateStr);
 
                 // 내일 예정된 집안일만 필터링 (due_date가 내일이고, assignee가 있는 것)
                 const tomorrowAssigned = familyChores.filter(chore => {
