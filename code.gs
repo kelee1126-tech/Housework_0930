@@ -1474,11 +1474,13 @@ function getFamilyChores(familyId) {
         const headers = data[0];
         
         const chores = [];
+        Logger.log(`가족 집안일 조회: ${familyId}, 데이터 행 수: ${data.length}`);
+        
         for (let i = 1; i < data.length; i++) {
             const row = data[i];
             // use 컬럼이 'Y'인 것만 반환
             if (row[7] === 'Y') {  // use 컬럼 인덱스
-                chores.push({
+                const chore = {
                     chore_id: row[0],
                     chore_name: row[1],
                     choregroup_name: row[2],
@@ -1494,9 +1496,18 @@ function getFamilyChores(familyId) {
                     color: row[12] || 'gray',
                     created_at: row[13] || new Date().toISOString(),
                     updated_at: row[14] || new Date().toISOString()
-                });
+                };
+                
+                // 내일 할일 관련 로깅
+                if (chore.due_date && chore.assignee) {
+                    Logger.log(`집안일: ${chore.chore_name} | due_date: ${chore.due_date} | assignee: ${chore.assignee}`);
+                }
+                
+                chores.push(chore);
             }
         }
+        
+        Logger.log(`조회된 집안일 개수: ${chores.length}`);
         
         return chores;
     } catch (error) {
