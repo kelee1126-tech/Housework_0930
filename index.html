@@ -4209,24 +4209,28 @@
                             const freqUnit = (chore.freq_type === 'd' || chore.freq_type === 'day') ? '일' : '주';
                             const isActive = chore.use === 'Y' || chore.use === undefined;
                             html += `
-                                <div style="display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc;">
-                                    <input type="checkbox" 
-                                           data-chore-id="${chore.chore_id}" 
-                                           ${isActive ? 'checked' : ''}
-                                           style="width: 20px; height: 20px; cursor: pointer;">
-                                    <div style="flex: 1;">
-                                        <div style="font-weight: 500; color: #1e293b;">${chore.chore_name}</div>
+                                <div style="padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc;">
+                                    <!-- 윗줄: 집안일 이름 -->
+                                    <div style="font-weight: 500; color: #1e293b; margin-bottom: 10px; word-wrap: break-word; line-height: 1.5;">
+                                        ${chore.chore_name}
                                     </div>
-                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                        <input type="number" 
+                                    <!-- 아랫줄: 체크박스와 주기 -->
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <input type="checkbox" 
                                                data-chore-id="${chore.chore_id}" 
-                                               data-freq-type="${chore.freq_type}"
-                                               class="freq-input"
-                                               value="${chore.freq_value}" 
-                                               min="1" 
-                                               max="${(chore.freq_type === 'd' || chore.freq_type === 'day') ? '30' : '52'}"
-                                               style="width: 60px; padding: 5px; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center;">
-                                        <span style="color: #64748b; min-width: 30px;">${freqUnit}마다</span>
+                                               ${isActive ? 'checked' : ''}
+                                               style="width: 20px; height: 20px; cursor: pointer;">
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <input type="number" 
+                                                   data-chore-id="${chore.chore_id}" 
+                                                   data-freq-type="${chore.freq_type}"
+                                                   class="freq-input"
+                                                   value="${chore.freq_value}" 
+                                                   min="1" 
+                                                   max="${(chore.freq_type === 'd' || chore.freq_type === 'day') ? '30' : '52'}"
+                                                   style="width: 60px; padding: 5px; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center;">
+                                            <span style="color: #64748b; min-width: 30px;">${freqUnit}마다</span>
+                                        </div>
                                     </div>
                                 </div>
                             `;
